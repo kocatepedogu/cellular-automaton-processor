@@ -20,16 +20,20 @@ shr r8,r7,r2
 li my,0
 li r5,0
 
-# The cell at the center is set to 90 for my = u(t-1) and 30 for r5 = u(t-2)
-li r1,12
+# Create wave in two cells
+li r1,10
 seq r2,x,r1
+li r1,14
+seq r3,x,r1
+or r2,r2,r3
+li r1,12
 seq r1,y,r1
 and r2,r2,r1
 
-li r1,31
+li r1,20
 mul my,r1,r2
 mul my,my,r7
-li r1,30
+li r1,19
 mul r5,r1,r2
 mul r5,r5,r7
 
