@@ -3,19 +3,19 @@
 
 `include "isa.sv"
 
-module control (
+module control #(parameter PC_LENGTH = 12, parameter SP_LENGTH = 5)(
     input clk,
     input rst,
 
-    input      [15:0] instruction,
-    output reg [11:0] program_counter,
-    output reg [11:0] next_program_counter,
-    output reg [4 :0] next_stack_pointer,
-    input             diverge_consensus
+    input [15:0] instruction,
+    output reg [PC_LENGTH-1:0] program_counter,
+    output reg [PC_LENGTH-1:0] next_program_counter,
+    output reg [SP_LENGTH-1:0] next_stack_pointer,
+    input diverge_consensus
 );
 
-  reg  [11:0] call_stack [32];
-  reg  [4: 0] stack_pointer;
+  reg  [PC_LENGTH-1:0] call_stack [32];
+  reg  [SP_LENGTH-1:0] stack_pointer;
 
   wire [3: 0] opcode = instruction[15:12];
   wire [11:0] jump_addr = instruction[11:0];
@@ -48,8 +48,8 @@ module control (
 
   always @(posedge clk) begin
     if (rst) begin
-      program_counter <= 12'd0;
-      stack_pointer <= 5'd0;
+      program_counter <= (PC_LENGTH)'(0);
+      stack_pointer <= (SP_LENGTH)'(0);
     end else begin
       if (opcode == `CALL)
         call_stack[stack_pointer] <= program_counter + 2;

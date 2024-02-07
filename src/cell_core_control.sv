@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2024 Doğu Kocatepe
 // SPDX-License-Identifier: CERN-OHL-S-2.0
 
-module cell_core_control #(parameter REGISTER_LENGTH = 8) (
+module cell_core_control #(parameter REGISTER_LENGTH = 8, parameter PC_LENGTH = 12,
+                           parameter SP_LENGTH = 5) (
     input clk,
     input rst,
 
     input [REGISTER_LENGTH-1:0] target_value,
 
     input [15:0] instruction,
-    input [11:0] next_program_counter,
-    input [4 :0] next_stack_pointer,
-    input        execution_enable,
+    input [PC_LENGTH-1:0] next_program_counter,
+    input [SP_LENGTH-1:0] next_stack_pointer,
+    input execution_enable,
 
     output enable,
     output state_change_enable,
@@ -19,8 +20,8 @@ module cell_core_control #(parameter REGISTER_LENGTH = 8) (
 
   reg  diverged = 0;
 
-  reg  [11:0] local_program_counter = 0;
-  reg  [4: 0] local_stack_pointer = 0;
+  reg  [PC_LENGTH-1:0] local_program_counter = 0;
+  reg  [SP_LENGTH-1:0] local_stack_pointer = 0;
 
   wire [3:0 ] opcode = instruction[15:12];
   wire [3:0 ] target = instruction[11:8];
@@ -37,7 +38,7 @@ module cell_core_control #(parameter REGISTER_LENGTH = 8) (
   assign diverge = ((opcode == `UNL) && (~|target_value)) || diverged;
 
   // True if the current instruction is going to cause an unconditional branch.
-  wire unconditional_jump = opcode == `JUMP;
+  wire unconditional_jump = opcode == `JUMP || opcode == `CALL || opcode == `RET;
 
   /* If the cell is synchronized and it is not going to diverge or jump, then
      it is allowed to change its state, or write to its registers. */
@@ -58,11 +59,11 @@ module cell_core_control #(parameter REGISTER_LENGTH = 8) (
         if (next_program_counter == local_program_counter && next_stack_pointer == local_stack_pointer)
           diverged <= 0;
       end else if (diverge) begin
-        local_program_counter <= {4'b0, immediate};
+        local_program_counter <= (PC_LENGTH)'(immediate);
         // Deactivate the core if an unconditional branch
         // is encountered and other cores are not going to
         // follow us. (there is no global branch consensus)
-        if (next_program_counter != {4'b0, immediate})
+        if (next_program_counter != (PC_LENGTH)'(immediate))
           diverged <= 1;
       end else begin
         local_program_counter <= next_program_counter;

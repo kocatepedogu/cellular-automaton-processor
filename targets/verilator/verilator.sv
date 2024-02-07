@@ -13,13 +13,15 @@ module top (
   parameter REGISTER_LENGTH /*verilator public*/ = 32;
   parameter WIDTH /*verilator public*/ = 25;
   parameter HEIGHT /*verilator public*/ = 25;
+  parameter PC_LENGTH = 12;
+  parameter SP_LENGTH = 5;
 
   wire diverge_consensus;
 
-  wire [11:0] next_program_counter;
-  wire [4 :0] next_stack_pointer;
+  wire [PC_LENGTH-1:0] next_program_counter;
+  wire [SP_LENGTH-1:0] next_stack_pointer;
 
-  control cntrl (
+  control #(.PC_LENGTH(PC_LENGTH), .SP_LENGTH(SP_LENGTH)) cntrl (
     .clk(clk),
     .rst(rst),
     .instruction(instruction),
@@ -29,7 +31,8 @@ module top (
     .diverge_consensus(diverge_consensus)
   );
 
-  multiprocessor #(.WIDTH(WIDTH),.HEIGHT(HEIGHT),.REGISTER_LENGTH(REGISTER_LENGTH)) mp (
+  multiprocessor #(.WIDTH(WIDTH),.HEIGHT(HEIGHT),.REGISTER_LENGTH(REGISTER_LENGTH),
+                   .PC_LENGTH(PC_LENGTH), .SP_LENGTH(SP_LENGTH)) mp (
     .clk(clk),
     .rst(rst),
 

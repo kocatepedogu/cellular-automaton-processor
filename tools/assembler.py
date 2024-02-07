@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2024 Doğu Kocatepe
-// SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2024 Doğu Kocatepe
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import sys
 import copy

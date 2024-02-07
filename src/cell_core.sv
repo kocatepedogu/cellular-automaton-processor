@@ -3,13 +3,14 @@
 
 `include "isa.sv"
 
-module cell_core #(parameter X = 0, parameter Y = 0, parameter REGISTER_LENGTH = 8) (
+module cell_core #(parameter X = 0, parameter Y = 0, parameter REGISTER_LENGTH = 8,
+                   parameter PC_LENGTH = 12, parameter SP_LENGTH = 5) (
     input clk,
     input rst,
     input  [15:0] instruction,
-    input  [11:0] next_program_counter,
-    input  [4 :0] next_stack_pointer,
-    input         execution_enable,
+    input  [PC_LENGTH-1:0] next_program_counter,
+    input  [SP_LENGTH-1:0] next_stack_pointer,
+    input  execution_enable,
     input  [REGISTER_LENGTH-1:0] i01,
     input  [REGISTER_LENGTH-1:0] i10,
     input  [REGISTER_LENGTH-1:0] i11,
@@ -51,7 +52,8 @@ module cell_core #(parameter X = 0, parameter Y = 0, parameter REGISTER_LENGTH =
     wire [REGISTER_LENGTH-1:0] alu_result;
 
     cell_core_alu #(.REGISTER_LENGTH(REGISTER_LENGTH)) alu (
-      .opcode(opcode), .immediate(immediate),
+      .opcode(opcode),
+      .immediate(immediate),
       .first_operand_value(first_operand_value),
       .second_operand_value(second_operand_value),
       .result(alu_result)
@@ -60,11 +62,18 @@ module cell_core #(parameter X = 0, parameter Y = 0, parameter REGISTER_LENGTH =
     wire enable;
     wire state_change_enable;
 
-    cell_core_control #(.REGISTER_LENGTH(REGISTER_LENGTH)) cntrl (
-      .clk(clk), .rst(rst), .target_value(target_value),
-      .instruction(instruction), .next_program_counter(next_program_counter),
-      .next_stack_pointer(next_stack_pointer), .execution_enable(execution_enable),
-      .enable(enable), .state_change_enable(state_change_enable),
+    cell_core_control #(.REGISTER_LENGTH(REGISTER_LENGTH),
+                        .PC_LENGTH(PC_LENGTH),
+                        .SP_LENGTH(SP_LENGTH)) cntrl (
+      .clk(clk),
+      .rst(rst),
+      .target_value(target_value),
+      .instruction(instruction),
+      .next_program_counter(next_program_counter),
+      .next_stack_pointer(next_stack_pointer),
+      .execution_enable(execution_enable),
+      .enable(enable),
+      .state_change_enable(state_change_enable),
       .diverge(diverge)
     );
 

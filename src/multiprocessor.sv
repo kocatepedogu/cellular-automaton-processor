@@ -4,13 +4,16 @@
 module multiprocessor #(
     parameter WIDTH = 10,
     parameter HEIGHT = 8,
-    parameter REGISTER_LENGTH = 8
+    parameter REGISTER_LENGTH = 8,
+    parameter PC_LENGTH = 12,
+    parameter SP_LENGTH = 5
 ) (
     input clk,
     input rst,
 
-    input  [11:0] next_program_counter,
-    input  [4 :0] next_stack_pointer,
+    input  [PC_LENGTH-1:0] next_program_counter,
+    input  [SP_LENGTH-1:0] next_stack_pointer,
+
     input  [15:0] instruction,
     input         execution_enable,
     output reg    diverge_consensus
@@ -37,7 +40,8 @@ module multiprocessor #(
     genvar j;
     generate
         // Top-Left Corner
-        cell_core #(.X(0),.Y(0),.REGISTER_LENGTH(REGISTER_LENGTH)) cellTopLeft (
+        cell_core #(.X(0),.Y(0),.REGISTER_LENGTH(REGISTER_LENGTH),
+                    .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellTopLeft (
             .clk(clk),
             .rst(rst),
             .instruction(instruction),
@@ -55,7 +59,8 @@ module multiprocessor #(
         );
 
         // Top-Right Corner
-        cell_core #(.X(WIDTH-1),.Y(0),.REGISTER_LENGTH(REGISTER_LENGTH)) cellTopRight (
+        cell_core #(.X(WIDTH-1),.Y(0),.REGISTER_LENGTH(REGISTER_LENGTH),
+                    .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellTopRight (
             .clk(clk),
             .rst(rst),
             .instruction(instruction),
@@ -74,7 +79,8 @@ module multiprocessor #(
 
         // Top Line
         for (i=1; i <= WIDTH - 2; i=i+1) begin
-            cell_core #(.X(i),.Y(0),.REGISTER_LENGTH(REGISTER_LENGTH)) cellTopLine (
+            cell_core #(.X(i),.Y(0),.REGISTER_LENGTH(REGISTER_LENGTH),
+                        .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellTopLine (
                 .clk(clk),
                 .rst(rst),
                 .instruction(instruction),
@@ -93,7 +99,8 @@ module multiprocessor #(
         end
 
         // Bottom-Left Corner
-        cell_core #(.X(0),.Y(HEIGHT-1),.REGISTER_LENGTH(REGISTER_LENGTH)) cellBottomLeft (
+        cell_core #(.X(0),.Y(HEIGHT-1),.REGISTER_LENGTH(REGISTER_LENGTH),
+                    .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellBottomLeft (
             .clk(clk),
             .rst(rst),
             .instruction(instruction),
@@ -111,7 +118,8 @@ module multiprocessor #(
         );
 
         // Bottom-Right Corner
-        cell_core #(.X(WIDTH-1),.Y(HEIGHT-1),.REGISTER_LENGTH(REGISTER_LENGTH)) cellBottomRight (
+        cell_core #(.X(WIDTH-1),.Y(HEIGHT-1),.REGISTER_LENGTH(REGISTER_LENGTH),
+                    .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellBottomRight (
             .clk(clk),
             .rst(rst),
             .instruction(instruction),
@@ -130,7 +138,8 @@ module multiprocessor #(
 
         // Bottom Line
         for (i=1; i <= WIDTH - 2; i=i+1) begin
-            cell_core #(.X(i),.Y(HEIGHT-1),.REGISTER_LENGTH(REGISTER_LENGTH)) cellBottomLine (
+            cell_core #(.X(i),.Y(HEIGHT-1),.REGISTER_LENGTH(REGISTER_LENGTH),
+                        .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellBottomLine (
                 .clk(clk),
                 .rst(rst),
                 .instruction(instruction),
@@ -150,7 +159,8 @@ module multiprocessor #(
 
         // Left Line
         for (i=1; i <= HEIGHT - 2; i=i+1) begin
-            cell_core #(.X(0),.Y(i),.REGISTER_LENGTH(REGISTER_LENGTH)) cellLeftLine (
+            cell_core #(.X(0),.Y(i),.REGISTER_LENGTH(REGISTER_LENGTH),
+                        .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellLeftLine (
                 .clk(clk),
                 .rst(rst),
                 .instruction(instruction),
@@ -170,7 +180,8 @@ module multiprocessor #(
 
         // Right Line
         for (i=1; i <= HEIGHT - 2; i=i+1) begin
-            cell_core #(.X(WIDTH-1),.Y(i),.REGISTER_LENGTH(REGISTER_LENGTH)) cellRightLine (
+            cell_core #(.X(WIDTH-1),.Y(i),.REGISTER_LENGTH(REGISTER_LENGTH),
+                        .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellRightLine (
                 .clk(clk),
                 .rst(rst),
                 .instruction(instruction),
@@ -191,7 +202,8 @@ module multiprocessor #(
         // Inside
         for (i=1; i <= WIDTH - 2; i=i+1) begin
             for (j=1; j <= HEIGHT - 2; j=j+1) begin
-                cell_core #(.X(i),.Y(j),.REGISTER_LENGTH(REGISTER_LENGTH)) cellInside (
+                cell_core #(.X(i),.Y(j),.REGISTER_LENGTH(REGISTER_LENGTH),
+                            .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellInside (
                     .clk(clk),
                     .rst(rst),
                     .instruction(instruction),
