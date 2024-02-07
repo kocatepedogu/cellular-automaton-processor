@@ -11,19 +11,29 @@ module top (
   parameter WIDTH /*verilator public*/ = 25;
   parameter HEIGHT /*verilator public*/ = 25;
 
+  wire diverge_consensus;
+
+  wire [11:0] next_program_counter;
+  wire [4 :0] next_stack_pointer;
+
   sync_control cntrl (
     .clk(clk),
     .rst(rst),
     .instruction(instruction),
-    .program_counter(program_counter)
+    .program_counter(program_counter),
+    .next_program_counter(next_program_counter),
+    .next_stack_pointer(next_stack_pointer),
+    .diverge_consensus(diverge_consensus)
   );
 
   multiprocessor #(.WIDTH(WIDTH),.HEIGHT(HEIGHT),.REGISTER_LENGTH(REGISTER_LENGTH)) mp (
     .clk(clk),
     .rst(rst),
 
-    .program_counter(program_counter),
+    .next_program_counter(next_program_counter),
+    .next_stack_pointer(next_stack_pointer),
     .instruction(instruction),
-    .execution_enable(1)
+    .execution_enable(1),
+    .diverge_consensus(diverge_consensus)
   );
 endmodule

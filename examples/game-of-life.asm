@@ -1,4 +1,4 @@
-# Check if x=1, y=0
+# Generate glider pattern
 cond1:
   li r1,0
   seq r1,y,r1
@@ -26,6 +26,7 @@ cond3:
   unl r1,loop
   li my,1
 
+# Run Game of Life simulation
 loop:
     # Retrieve left values
         # Shift everything to right and get (x-1,y)

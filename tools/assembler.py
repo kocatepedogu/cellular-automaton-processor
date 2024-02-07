@@ -36,11 +36,13 @@ r_type_instructions = {
     'slt':  8,
     'mul':  9,
     'shr':  10,
-    'fmul': 12
+    'fmul': 11
 }
 
 j_type_instructions = {
-    'j':    11
+    'j':    12,
+    'call': 13,
+    'ret':  14
 }
 
 def initialize_register_indices():

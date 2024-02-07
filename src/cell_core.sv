@@ -4,7 +4,8 @@ module cell_core #(parameter X = 0, parameter Y = 0, parameter REGISTER_LENGTH =
     input clk,
     input rst,
     input  [15:0] instruction,
-    input  [11:0] program_counter,
+    input  [11:0] next_program_counter,
+    input  [4 :0] next_stack_pointer,
     input         execution_enable,
     input  [REGISTER_LENGTH-1:0] i01,
     input  [REGISTER_LENGTH-1:0] i10,
@@ -12,7 +13,8 @@ module cell_core #(parameter X = 0, parameter Y = 0, parameter REGISTER_LENGTH =
     input  [REGISTER_LENGTH-1:0] i12,
     input  [REGISTER_LENGTH-1:0] i21,
     output [REGISTER_LENGTH-1:0] nextState,
-    output reg [REGISTER_LENGTH-1:0] nextVideo
+    output reg [REGISTER_LENGTH-1:0] nextVideo,
+    output diverge
 );
     reg  [REGISTER_LENGTH-1:0] regs [9];
     wire [REGISTER_LENGTH-1:0] inputs [16];
@@ -57,9 +59,10 @@ module cell_core #(parameter X = 0, parameter Y = 0, parameter REGISTER_LENGTH =
 
     cell_core_control #(.REGISTER_LENGTH(REGISTER_LENGTH)) cntrl (
       .clk(clk), .rst(rst), .target_value(target_value),
-      .instruction(instruction), .program_counter(program_counter),
-      .execution_enable(execution_enable),
-      .enable(enable), .state_change_enable(state_change_enable)
+      .instruction(instruction), .next_program_counter(next_program_counter),
+      .next_stack_pointer(next_stack_pointer), .execution_enable(execution_enable),
+      .enable(enable), .state_change_enable(state_change_enable),
+      .diverge(diverge)
     );
 
     integer i;

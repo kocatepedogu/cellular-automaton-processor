@@ -27,5 +27,7 @@
 `define SLT 4'd8
 `define MUL 4'd9
 `define SHR 4'd10
-`define JUMP 4'd11
-`define FMUL 4'd12
+`define FMUL 4'd11
+`define JUMP 4'd12
+`define CALL 4'd13
+`define RET 4'd14

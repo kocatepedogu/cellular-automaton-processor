@@ -12,25 +12,40 @@ module multiprocessor #(
     output [REGISTER_LENGTH-1:0] vga_output,
 `endif
 
-    input  [11:0] program_counter,
+    input  [11:0] next_program_counter,
+    input  [4 :0] next_stack_pointer,
     input  [15:0] instruction,
-    input         execution_enable
+    input         execution_enable,
+    output reg    diverge_consensus
 );
     reg  [REGISTER_LENGTH-1:0] states[HEIGHT][WIDTH];
 
     wire [REGISTER_LENGTH-1:0] nextstates[HEIGHT][WIDTH];
     wire [REGISTER_LENGTH-1:0] nextvideo[HEIGHT][WIDTH] /*verilator public*/;
 
+    wire diverge[HEIGHT][WIDTH];
+
+    integer x;
+    integer y;
+    always_comb begin
+      diverge_consensus = 1;
+      for (x=0; x < WIDTH; x=x+1) begin
+        for (y=0; y < HEIGHT; y=y+1) begin
+          diverge_consensus = diverge_consensus & diverge[y][x];
+        end
+      end
+    end
+
     genvar i;
     genvar j;
-
     generate
         // Top-Left Corner
         cell_core #(.X(0),.Y(0),.REGISTER_LENGTH(REGISTER_LENGTH)) cellTopLeft (
             .clk(clk),
             .rst(rst),
             .instruction(instruction),
-            .program_counter(program_counter),
+            .next_program_counter(next_program_counter),
+            .next_stack_pointer(next_stack_pointer),
             .execution_enable(execution_enable),
             .i01(states[HEIGHT-1][0]),
             .i10(states[0][WIDTH-1]),
@@ -38,7 +53,8 @@ module multiprocessor #(
             .i12(states[0][1]),
             .i21(states[1][0]),
             .nextState(nextstates[0][0]),
-            .nextVideo(nextvideo[0][0])
+            .nextVideo(nextvideo[0][0]),
+            .diverge(diverge[0][0])
         );
 
         // Top-Right Corner
@@ -46,7 +62,8 @@ module multiprocessor #(
             .clk(clk),
             .rst(rst),
             .instruction(instruction),
-            .program_counter(program_counter),
+            .next_program_counter(next_program_counter),
+            .next_stack_pointer(next_stack_pointer),
             .execution_enable(execution_enable),
             .i01(states[HEIGHT-1][WIDTH-1]),
             .i10(states[0][WIDTH-2]),
@@ -54,7 +71,8 @@ module multiprocessor #(
             .i12(states[0][0]),
             .i21(states[1][WIDTH-1]),
             .nextState(nextstates[0][WIDTH-1]),
-            .nextVideo(nextvideo[0][WIDTH-1])
+            .nextVideo(nextvideo[0][WIDTH-1]),
+            .diverge(diverge[0][WIDTH-1])
         );
 
         // Top Line
@@ -63,7 +81,8 @@ module multiprocessor #(
                 .clk(clk),
                 .rst(rst),
                 .instruction(instruction),
-                .program_counter(program_counter),
+                .next_program_counter(next_program_counter),
+                .next_stack_pointer(next_stack_pointer),
                 .execution_enable(execution_enable),
                 .i01(states[HEIGHT-1][i]),
                 .i10(states[0][i-1]),
@@ -71,7 +90,8 @@ module multiprocessor #(
                 .i12(states[0][i+1]),
                 .i21(states[1][i]),
                 .nextState(nextstates[0][i]),
-                .nextVideo(nextvideo[0][i])
+                .nextVideo(nextvideo[0][i]),
+                .diverge(diverge[0][i])
             );
         end
 
@@ -80,7 +100,8 @@ module multiprocessor #(
             .clk(clk),
             .rst(rst),
             .instruction(instruction),
-            .program_counter(program_counter),
+            .next_program_counter(next_program_counter),
+            .next_stack_pointer(next_stack_pointer),
             .execution_enable(execution_enable),
             .i01(states[HEIGHT-2][0]),
             .i10(states[HEIGHT-1][WIDTH-1]),
@@ -88,7 +109,8 @@ module multiprocessor #(
             .i12(states[HEIGHT-1][1]),
             .i21(states[0][0]),
             .nextState(nextstates[HEIGHT-1][0]),
-            .nextVideo(nextvideo[HEIGHT-1][0])
+            .nextVideo(nextvideo[HEIGHT-1][0]),
+            .diverge(diverge[HEIGHT-1][0])
         );
 
         // Bottom-Right Corner
@@ -96,7 +118,8 @@ module multiprocessor #(
             .clk(clk),
             .rst(rst),
             .instruction(instruction),
-            .program_counter(program_counter),
+            .next_program_counter(next_program_counter),
+            .next_stack_pointer(next_stack_pointer),
             .execution_enable(execution_enable),
             .i01(states[HEIGHT-2][WIDTH-1]),
             .i10(states[HEIGHT-1][WIDTH-2]),
@@ -104,7 +127,8 @@ module multiprocessor #(
             .i12(states[HEIGHT-1][0]),
             .i21(states[0][WIDTH-1]),
             .nextState(nextstates[HEIGHT-1][WIDTH-1]),
-            .nextVideo(nextvideo[HEIGHT-1][WIDTH-1])
+            .nextVideo(nextvideo[HEIGHT-1][WIDTH-1]),
+            .diverge(diverge[HEIGHT-1][WIDTH-1])
         );
 
         // Bottom Line
@@ -113,7 +137,8 @@ module multiprocessor #(
                 .clk(clk),
                 .rst(rst),
                 .instruction(instruction),
-                .program_counter(program_counter),
+                .next_program_counter(next_program_counter),
+                .next_stack_pointer(next_stack_pointer),
                 .execution_enable(execution_enable),
                 .i01(states[HEIGHT-2][i]),
                 .i10(states[HEIGHT-1][i-1]),
@@ -121,7 +146,8 @@ module multiprocessor #(
                 .i12(states[HEIGHT-1][i+1]),
                 .i21(states[0][i]),
                 .nextState(nextstates[HEIGHT-1][i]),
-                .nextVideo(nextvideo[HEIGHT-1][i])
+                .nextVideo(nextvideo[HEIGHT-1][i]),
+                .diverge(diverge[HEIGHT-1][i])
             );
         end
 
@@ -131,7 +157,8 @@ module multiprocessor #(
                 .clk(clk),
                 .rst(rst),
                 .instruction(instruction),
-                .program_counter(program_counter),
+                .next_program_counter(next_program_counter),
+                .next_stack_pointer(next_stack_pointer),
                 .execution_enable(execution_enable),
                 .i01(states[i-1][0]),
                 .i10(states[i][WIDTH-1]),
@@ -139,7 +166,8 @@ module multiprocessor #(
                 .i12(states[i][1]),
                 .i21(states[i+1][0]),
                 .nextState(nextstates[i][0]),
-                .nextVideo(nextvideo[i][0])
+                .nextVideo(nextvideo[i][0]),
+                .diverge(diverge[i][0])
             );
         end
 
@@ -149,7 +177,8 @@ module multiprocessor #(
                 .clk(clk),
                 .rst(rst),
                 .instruction(instruction),
-                .program_counter(program_counter),
+                .next_program_counter(next_program_counter),
+                .next_stack_pointer(next_stack_pointer),
                 .execution_enable(execution_enable),
                 .i01(states[i-1][WIDTH-1]),
                 .i10(states[i][WIDTH-2]),
@@ -157,7 +186,8 @@ module multiprocessor #(
                 .i12(states[i][0]),
                 .i21(states[i+1][WIDTH-1]),
                 .nextState(nextstates[i][WIDTH-1]),
-                .nextVideo(nextvideo[i][WIDTH-1])
+                .nextVideo(nextvideo[i][WIDTH-1]),
+                .diverge(diverge[i][WIDTH-1])
             );
         end
 
@@ -168,7 +198,8 @@ module multiprocessor #(
                     .clk(clk),
                     .rst(rst),
                     .instruction(instruction),
-                    .program_counter(program_counter),
+                    .next_program_counter(next_program_counter),
+                    .next_stack_pointer(next_stack_pointer),
                     .execution_enable(execution_enable),
                     .i01(states[j-1][i]),
                     .i10(states[j][i-1]),
@@ -176,7 +207,8 @@ module multiprocessor #(
                     .i12(states[j][i+1]),
                     .i21(states[j+1][i]),
                     .nextState(nextstates[j][i]),
-                    .nextVideo(nextvideo[j][i])
+                    .nextVideo(nextvideo[j][i]),
+                    .diverge(diverge[j][i])
                 );
             end
         end

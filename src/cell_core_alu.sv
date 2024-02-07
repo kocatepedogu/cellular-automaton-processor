@@ -11,11 +11,11 @@ module cell_core_alu #(parameter REGISTER_LENGTH = 8) (
 
     wire signed [REGISTER_LENGTH-1:0] add_result = first_operand_value + second_operand_value;
     wire signed [REGISTER_LENGTH-1:0] sub_result = first_operand_value - second_operand_value;
-    wire signed [REGISTER_LENGTH-1:0] and_result = first_operand_value & second_operand_value;
-    wire signed [REGISTER_LENGTH-1:0] or_result = first_operand_value | second_operand_value;
-    wire signed [REGISTER_LENGTH-1:0] nor_result = ~or_result;
-    wire signed [REGISTER_LENGTH-1:0] seq_result = {(REGISTER_LENGTH-1)'(0), ~|sub_result};
-    wire signed [REGISTER_LENGTH-1:0] slt_result = {(REGISTER_LENGTH-1)'(0), sub_result[REGISTER_LENGTH-1]};
+    wire [REGISTER_LENGTH-1:0] and_result = first_operand_value & second_operand_value;
+    wire [REGISTER_LENGTH-1:0] or_result = first_operand_value | second_operand_value;
+    wire [REGISTER_LENGTH-1:0] nor_result = ~or_result;
+    wire [REGISTER_LENGTH-1:0] seq_result = {(REGISTER_LENGTH-1)'(0), ~|sub_result};
+    wire [REGISTER_LENGTH-1:0] slt_result = {(REGISTER_LENGTH-1)'(0), sub_result[REGISTER_LENGTH-1]};
     wire signed [REGISTER_LENGTH-1:0] mul_result = first_operand_value * second_operand_value;
     wire signed [REGISTER_LENGTH-1:0] shr_result = first_operand_value >>> second_operand_value;
     wire signed [REGISTER_LENGTH*2-1:0] fmul_result = first_operand_value * second_operand_value;

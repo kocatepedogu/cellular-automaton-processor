@@ -13,7 +13,7 @@ Two-dimensional heat equation solution. Initially, there was a circle with high 
 <img src="./examples/game-of-life.png" width="300px"><br>
 Glider pattern in Conway's Game of Life. The space is a toroidal array, so the pattern repeats itself forever.
 
-The above screenshots are taken from Verilator simulations. Assembly language sources can be found in examples directory. C++ and Verilog sources for the Verilator are available under targets/verilator. The total number of cores in the simulations are 25x25=625. Register lengths need to be at least 32 bits for the PDE examples to run, but the Game of Life example can run even with 4 bits, which can also tested on Basys3 FPGA board with F4PGA/Symbiflow toolchain.
+The above screenshots are taken from Verilator simulations. Assembly language sources can be found in examples directory. C++ and Verilog sources for the Verilator are available under targets/verilator. The total number of cores in the simulations are 25x25=625. Register lengths need to be at least 32 bits for the PDE examples to run, but the Game of Life example can run even with 4 bits.
 
 ## Instruction Format (16 Bits)
 

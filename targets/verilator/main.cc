@@ -79,6 +79,12 @@ int main(int argc, char **argv) {
       source_file = "examples/game-of-life.asm";
       output_file = "examples/game-of-life.hex";
       visual_mode = MONOCHROME;
+    } else if (program_name == "recursion") {
+      source_file = "examples/recursion.asm";
+      output_file = "examples/recursion.hex";
+      color_range_min = 0;
+      color_range_max = 1000;
+      visual_mode = COLOR;
     } else if (program_name == "heat-equation") {
       source_file = "examples/heat.asm";
       output_file = "examples/heat.hex";
