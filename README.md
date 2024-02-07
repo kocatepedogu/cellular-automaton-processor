@@ -136,7 +136,7 @@ The 'fmul' instruction multiplies given two registers and internally stores the 
 
 ## LICENSE
 
-The assembler source is released under GNU GPL v3.0 or later.
+The assembler source is released under GNU General Public License v3.0 or any later version.
 
 The HDL sources are released under the Strongly Reciprocal CERN Open Hardware License Version 2 (CERN-OHL-S-2.0).
 
