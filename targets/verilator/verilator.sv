@@ -16,7 +16,7 @@ module top (
   wire [11:0] next_program_counter;
   wire [4 :0] next_stack_pointer;
 
-  sync_control cntrl (
+  control cntrl (
     .clk(clk),
     .rst(rst),
     .instruction(instruction),

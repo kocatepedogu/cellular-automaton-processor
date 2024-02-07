@@ -1,6 +1,6 @@
 `include "isa.sv"
 
-module sync_control (
+module control (
     input clk,
     input rst,
 

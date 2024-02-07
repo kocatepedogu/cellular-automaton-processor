@@ -6,12 +6,6 @@ module multiprocessor #(
     input clk,
     input rst,
 
-`ifdef VGA_OUTPUT
-    input  [9:0] vga_x_idx,
-    input  [9:0] vga_y_idx,
-    output [REGISTER_LENGTH-1:0] vga_output,
-`endif
-
     input  [11:0] next_program_counter,
     input  [4 :0] next_stack_pointer,
     input  [15:0] instruction,
@@ -226,10 +220,4 @@ module multiprocessor #(
             end
         end
     endgenerate
-
-`ifdef VGA_OUTPUT
-    assign vga_output = (states_y_addr < HEIGHT && states_x_addr < WIDTH) ?
-                        nextvideo[states_y_addr[3:0]][states_x_addr[3:0]] : 0;
-`endif
-
 endmodule
