@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Doğu Kocatepe
+// SPDX-License-Identifier: CERN-OHL-S-2.0 OR GPL-3.0-or-later
+
 #include "sdl.hh"
 #include "simulation.hh"
 
@@ -102,8 +105,6 @@ int main(int argc, char **argv) {
       exit(EXIT_FAILURE);
     }
   }
-
-
 
   // Compile program
   system(("python3 tools/assembler.py " + source_file + " " + output_file).c_str());

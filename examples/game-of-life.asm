@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2024 Doğu Kocatepe
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # Generate glider pattern
 cond1:
   li r1,0

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Doğu Kocatepe
+// SPDX-License-Identifier: CERN-OHL-S-2.0
+
 `include "isa.sv"
 
 module cell_core_alu #(parameter REGISTER_LENGTH = 8) (

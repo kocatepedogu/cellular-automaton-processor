@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Doğu Kocatepe
+// SPDX-License-Identifier: CERN-OHL-S-2.0
+
 `define REG_MY 0
 `define REG_R1 1
 `define REG_R2 2

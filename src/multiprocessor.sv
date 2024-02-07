@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Doğu Kocatepe
+// SPDX-License-Identifier: CERN-OHL-S-2.0
+
 module multiprocessor #(
     parameter WIDTH = 10,
     parameter HEIGHT = 8,

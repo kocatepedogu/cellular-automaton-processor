@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Doğu Kocatepe
+// SPDX-License-Identifier: CERN-OHL-S-2.0 OR GPL-3.0-or-later
+
 #include <verilated.h>
 
 #include "Vtop.h"
