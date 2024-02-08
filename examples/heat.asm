@@ -20,8 +20,8 @@ shr r8,r7,r2
 ; ------- Initial Conditions -------
 
 ; Initially set all cells to 0, and show a blank screen.
-li my,0
-add video,my,zero
+li rs,0
+add video,rs,zero
 
 ; Compute (x-12)**2
 li r1,12
@@ -43,23 +43,23 @@ slt r2,r3,r1
 ; If condition is true, output 60 in 32 bit fixed point.
 unl r2,solution
 li r2,120
-mul my,r2,r7
+mul rs,r2,r7
 
 ; Display initial conditions
-shr video,my,r6
+shr video,rs,r6
 
 ; ------- Solution Loop -------
 
 solution:
   ; Compute d^2(u)/dx^2
   add r1,x+,x-
-  sub r1,r1,my
-  sub r1,r1,my
+  sub r1,r1,rs
+  sub r1,r1,rs
 
   ; Compute d^2(u)/dy^2
   add r2,y+,y-
-  sub r2,r2,my
-  sub r2,r2,my
+  sub r2,r2,rs
+  sub r2,r2,rs
 
   ; Compute d^2(u)/dx^2 + d^2(u)/dy^2
   add r1,r1,r2
@@ -68,8 +68,8 @@ solution:
   fmul r1,r1,r8
 
   ; Compute u(t+1) = u(t) + dt * (d^2(u)/dx^2 + d^2(u)/dy^2)
-  add my,my,r1
+  add rs,rs,r1
 
   ; Display result
-  shr video,my,r6
+  shr video,rs,r6
   j solution

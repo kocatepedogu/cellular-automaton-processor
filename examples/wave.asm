@@ -19,8 +19,8 @@ shr r8,r7,r2
 
 ; ------- Initial Conditions -------
 
-; Initially both my = u(t-1) and r5 = u(t-2) are set to zero for all cells.
-li my,0
+; Initially both rs = u(t-1) and r5 = u(t-2) are set to zero for all cells.
+li rs,0
 li r5,0
 
 ; Create wave in two cells
@@ -34,8 +34,8 @@ seq r1,y,r1
 and r2,r2,r1
 
 li r1,20
-mul my,r1,r2
-mul my,my,r7
+mul rs,r1,r2
+mul rs,rs,r7
 li r1,19
 mul r5,r1,r2
 mul r5,r5,r7
@@ -43,26 +43,26 @@ mul r5,r5,r7
 ; Display u(t-2)
 shr video,r5,r6
 ; Display u(t-1)
-shr video,my,r6
+shr video,rs,r6
 
 ; ------- Solution Loop -------
 
 solution:
-  ; Save my = u(t-1) to r4
-  add r4,my,zero
+  ; Save rs = u(t-1) to r4
+  add r4,rs,zero
 
   ; Obtain u(t-2)
-  add my,r5,zero
+  add rs,r5,zero
 
   ; Compute d^2(u)/dx^2 at t-2
   add r1,x+,x-
-  sub r1,r1,my
-  sub r1,r1,my
+  sub r1,r1,rs
+  sub r1,r1,rs
 
   ; Compute d^2(u)/dy^2 at t-2
   add r2,y+,y-
-  sub r2,r2,my
-  sub r2,r2,my
+  sub r2,r2,rs
+  sub r2,r2,rs
 
   ; Compute d^2(u)/dx^2 + d^2(u)/dy^2 at t-2
   add r1,r1,r2
@@ -75,14 +75,14 @@ solution:
   mul r1,r1,r2
 
   ; Compute [3 * (dt^2) * d^2(u)/dx^2 + d^2(u)/dy^2 at t-2] - [u at t-2]
-  sub r1,r1,my
+  sub r1,r1,rs
 
   ; Compute [3 * (dt^2) * d^2(u)/dx^2 + d^2(u)/dy^2 at t-2] + 2 * [u at t-1] - [u at t-2]
   add r1,r1,r4
   add r1,r1,r4
 
   add r5,zero,r4
-  add my,zero,r1
+  add rs,zero,r1
 
-  shr video,my,r6
+  shr video,rs,r6
   j solution

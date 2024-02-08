@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: CERN-OHL-S-2.0
 
 package isa;
-  parameter REG_MY = 0;
+  parameter REG_RS = 0;
   parameter REG_R1 = 1;
   parameter REG_R2 = 2;
   parameter REG_R3 = 3;

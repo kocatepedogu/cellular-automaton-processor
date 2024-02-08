@@ -5,7 +5,7 @@ import sys
 import copy
 
 register_indices = {
-    'my': 0,
+    'rs': 0,
     'r1': 1,
     'r2': 2,
     'r3': 3,

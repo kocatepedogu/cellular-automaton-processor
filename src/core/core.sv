@@ -25,7 +25,7 @@ module core #(parameter X = 0, parameter Y = 0) (
 
     wire value_t inputs [16];
 
-    assign inputs[REG_MY] = regs[REG_MY];
+    assign inputs[REG_RS] = regs[REG_RS];
     assign inputs[REG_R1] = regs[REG_R1];
     assign inputs[REG_R2] = regs[REG_R2];
     assign inputs[REG_R3] = regs[REG_R3];
@@ -87,6 +87,6 @@ module core #(parameter X = 0, parameter Y = 0) (
       end
     end
 
-    assign i11 = regs[REG_MY];
+    assign i11 = regs[REG_RS];
     assign video = regs[REG_VIDEO];
 endmodule

@@ -63,7 +63,7 @@ To run examples:
 
 | Value | Name | Description                                         |
 |-------|------|-----------------------------------------------------|
-| 0     | my   |Neighbor cores can read this through x-, x+, y-, y+  |
+| 0     | rs   |Neighbor cores can read this through x-, x+, y-, y+  |
 | 1     | r1   |General purpose register                             |
 | 2     | r2   |General purpose register                             |
 | 3     | r3   |General purpose register                             |
