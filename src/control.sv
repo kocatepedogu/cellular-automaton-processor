@@ -31,7 +31,7 @@ module control (
         next_stack_pointer = stack_pointer;
       end
       UNL: begin
-        next_program_counter = diverge_consensus ? branch_addr : program_counter + 2;
+        next_program_counter = diverge_consensus ? branch_addr : program_counter + 1;
         next_stack_pointer = stack_pointer;
       end
       CALL: begin
@@ -43,7 +43,7 @@ module control (
         next_stack_pointer = stack_pointer - 2;
       end
       default: begin
-        next_program_counter = program_counter + 2;
+        next_program_counter = program_counter + 1;
         next_stack_pointer = stack_pointer;
       end
     endcase
@@ -55,7 +55,7 @@ module control (
       stack_pointer <= (stack_pointer_length)'(0);
     end else begin
       if (opcode == CALL)
-        call_stack[stack_pointer] <= program_counter + 2;
+        call_stack[stack_pointer] <= program_counter + 1;
 
       program_counter <= next_program_counter;
       stack_pointer <= next_stack_pointer;

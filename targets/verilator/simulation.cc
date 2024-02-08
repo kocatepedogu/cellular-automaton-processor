@@ -6,14 +6,18 @@
 #include <fstream>
 
 namespace Simulator {
+  constexpr int max_instructions = 2048;
+  constexpr int instruction_length = 2;
+  constexpr int instruction_memory_length = max_instructions * instruction_length;
+
   Simulation::Simulation(std::string program_file_name) {
     this->top = new Vtop;
     this->grid_width = top->top->mp->width;
     this->grid_height = top->top->mp->width;
-    this->instruction_memory = new uint8_t[512];
+    this->instruction_memory = new uint8_t[instruction_memory_length];
 
     std::ifstream input_file(program_file_name);
-    for (uint8_t i = 0; i < 512; ++i) {
+    for (int i = 0; i < instruction_memory_length; ++i) {
       std::string line;
       if (!std::getline(input_file, line)) {
         break;
@@ -47,8 +51,8 @@ namespace Simulator {
   }
 
   void Simulation::nextInstruction() {
-    uint8_t upper = instruction_memory[top->program_counter+0];
-    uint8_t lower = instruction_memory[top->program_counter+1];
+    uint8_t upper = instruction_memory[(top->program_counter << 1) + 0];
+    uint8_t lower = instruction_memory[(top->program_counter << 1) + 1];
 
     top->instruction = (upper << 8) | lower;
     clock();

@@ -123,7 +123,7 @@ def encode(substituted_source):
         elif mnemonic in b_type_instructions:
             opcode = b_type_instructions[mnemonic]
             condition_reg, branch_addr = operands
-            instr = (opcode & 0b1111) << 12 | (condition_reg & 0b1111) << 8 | ((branch_addr - pc) & 0b1111_1111)
+            instr = (opcode & 0b1111) << 12 | (condition_reg & 0b1111) << 8 | (((branch_addr - pc) >> 1) & 0b1111_1111)
         elif mnemonic in r_type_instructions:
             opcode = r_type_instructions[mnemonic]
             target, first, second = operands
@@ -131,7 +131,7 @@ def encode(substituted_source):
         elif mnemonic in j_type_instructions:
             opcode = j_type_instructions[mnemonic]
             addr = operands[0]
-            instr = (opcode & 0b1111) << 12 | (addr & 0b1111_1111_1111)
+            instr = (opcode & 0b1111) << 12 | ((addr >> 1) & 0b1111_1111_1111)
         else:
             raise Exception('Unknown instruction')
 
