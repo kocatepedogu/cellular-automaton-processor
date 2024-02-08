@@ -31,6 +31,40 @@ struct Color {
   {255, 255, 255}, // White
 };
 
+struct Program {
+  const char *program_name;
+
+  const char *source_file;
+  const char *output_file;
+
+  const float color_range_min;
+  const float color_range_max;
+
+  Visualization visual_mode;
+} programs[] = {
+  {
+    "game-of-life",
+    "examples/game-of-life.asm",
+    "examples/game-of-life.hex",
+    0, 0, MONOCHROME
+  }, {
+    "recursion",
+    "examples/recursion.asm",
+    "examples/recursion.hex",
+    0, 1000, COLOR
+  }, {
+    "heat-equation",
+    "examples/heat.asm",
+    "examples/heat.hex",
+    0, 100, LINEAR_INTERPOLATION
+  }, {
+    "wave-equation",
+    "examples/wave.asm",
+    "examples/wave.hex",
+    -20, 20, LINEAR_INTERPOLATION
+  }
+};
+
 Color interpolateColor(int min, int max, int value) {
   constexpr int number_of_colors = sizeof colors / sizeof(Color);
 
@@ -62,97 +96,93 @@ Color interpolateColor(int min, int max, int value) {
   return int_color;
 }
 
-int main(int argc, char **argv) {
-  Visualization visual_mode;
+Program *findProgram(const char *program_name) {
+  constexpr int number_of_programs = sizeof programs / sizeof(Program);
 
-  float color_range_min = -20;
-  float color_range_max = 20;
+  for (int i = 0; i < number_of_programs; ++i) {
+    Program *program = &programs[i];
 
-  std::string source_file;
-  std::string output_file;
+    if (!strcmp(program->program_name, program_name)) {
+      return program;
+    }
+  }
+
+  return nullptr;
+}
+
+Program *parseArgs(int argc, char **argv) {
+  Program *prog = nullptr;
 
   if (argc != 2) {
     std::cerr << "Missing program name" << std::endl;
     exit(EXIT_FAILURE);
   }
-  else {
-    std::string program_name = argv[1];
 
-    if (program_name == "game-of-life") {
-      source_file = "examples/game-of-life.asm";
-      output_file = "examples/game-of-life.hex";
-      visual_mode = MONOCHROME;
-    } else if (program_name == "recursion") {
-      source_file = "examples/recursion.asm";
-      output_file = "examples/recursion.hex";
-      color_range_min = 0;
-      color_range_max = 1000;
-      visual_mode = COLOR;
-    } else if (program_name == "heat-equation") {
-      source_file = "examples/heat.asm";
-      output_file = "examples/heat.hex";
-      color_range_min = 0;
-      color_range_max = 100;
-      visual_mode = LINEAR_INTERPOLATION;
-    } else if (program_name == "wave-equation") {
-      source_file = "examples/wave.asm";
-      output_file = "examples/wave.hex";
-      color_range_min = -20;
-      color_range_max = 20;
-      visual_mode = LINEAR_INTERPOLATION;
-    } else {
-      std::cerr << "Unknown program name" << std::endl;
-      exit(EXIT_FAILURE);
-    }
+  if (!(prog = findProgram(argv[1]))) {
+    std::cerr << "Given program is not found." << std::endl;
+    exit(EXIT_FAILURE);
   }
 
+  return prog;
+}
+
+void display(Simulator::SDL& sdl, Simulator::Simulation& sim, Program *prog) {
+  for (int y = 0; y < window_height; ++y) {
+      for (int x = 0; x < window_width; ++x) {
+        unsigned int y_idx = y * sim.grid_height / window_height;
+        unsigned int x_idx = x * sim.grid_width / window_width;
+
+        switch (prog->visual_mode) {
+          case MONOCHROME: {
+            int value = sim.getState(x_idx, y_idx);
+            int color = value ? 255 : 0;
+            sdl.writePixel(x, y, color, color, color, 0);
+          } break;
+
+          case COLOR: {
+            float value = sim.getState(x_idx, y_idx);
+            Color color = interpolateColor(prog->color_range_min, prog->color_range_max, value);
+            sdl.writePixel(x, y, color.r, color.g, color.b, 0);
+          } break;
+
+          case LINEAR_INTERPOLATION: {
+            float y_idx_f = (float)y * sim.grid_height / window_height - y_idx;
+            float x_idx_f = (float)x * sim.grid_width / window_width - x_idx;
+
+            float v_x_y = sim.getState(x_idx, y_idx);
+            float v_xp_y = sim.getState(x_idx+1, y_idx);
+            float v_y = v_x_y * (1 - x_idx_f) + v_xp_y * x_idx_f;
+
+            float v_x_yp = sim.getState(x_idx, y_idx+1);
+            float v_xp_yp = sim.getState(x_idx+1, y_idx+1);
+            float v_yp = v_x_yp * (1 - x_idx_f) + v_xp_yp * x_idx_f;
+
+            float v = v_y * (1 - y_idx_f) + v_yp * y_idx_f;
+
+            Color color = interpolateColor(prog->color_range_min, prog->color_range_max, v);
+            sdl.writePixel(x, y, color.r, color.g, color.b, 0);
+        } break;
+      }
+    }
+  }
+}
+
+int main(int argc, char **argv) {
+  // Get program
+  Program *prog = parseArgs(argc, argv);
+
   // Compile program
-  system(("python3 tools/assembler.py " + source_file + " " + output_file).c_str());
+  system(("python3 tools/assembler.py " + std::string(prog->source_file) + " " +
+                                          std::string(prog->output_file)).c_str());
 
   // Start simulation
-  Simulator::Simulation sim(output_file);
+  Simulator::Simulation sim(prog->output_file);
   sim.reset();
 
   // Render loop
   for(Simulator::SDL sdl(window_width, window_height); !sdl.checkQuit(); sdl.update()) {
-      sim.nextInstruction();
-
-      for (int y = 0; y < window_height; ++y) {
-          for (int x = 0; x < window_width; ++x) {
-            unsigned int y_idx = y * sim.grid_height / window_height;
-            unsigned int x_idx = x * sim.grid_width / window_width;
-
-            switch (visual_mode) {
-              case MONOCHROME: {
-                int value = sim.getState(x_idx, y_idx);
-                int color = value ? 255 : 0;
-                sdl.writePixel(x, y, color, color, color, 0);
-              } break;
-              case COLOR: {
-                float value = (float)sim.getState(x_idx, y_idx);
-                Color color = interpolateColor(color_range_min, color_range_max, value);
-                sdl.writePixel(x, y, color.r, color.g, color.b, 0);
-              } break;
-              case LINEAR_INTERPOLATION: {
-                float y_idx_f = (float)y * sim.grid_height / window_height - y_idx;
-                float x_idx_f = (float)x * sim.grid_width / window_width - x_idx;
-
-                float v_x_y = sim.getState(x_idx, y_idx);
-                float v_xp_y = sim.getState(x_idx+1, y_idx);
-                float v_y = v_x_y * (1 - x_idx_f) + v_xp_y * x_idx_f;
-
-                float v_x_yp = sim.getState(x_idx, y_idx+1);
-                float v_xp_yp = sim.getState(x_idx+1, y_idx+1);
-                float v_yp = v_x_yp * (1 - x_idx_f) + v_xp_yp * x_idx_f;
-
-                float v = v_y * (1 - y_idx_f) + v_yp * y_idx_f;
-
-                Color color = interpolateColor(color_range_min, color_range_max, v);
-                sdl.writePixel(x, y, color.r, color.g, color.b, 0);
-              } break;
-            }
-          }
-      }
+    sim.nextInstruction();
+    display(sdl, sim, prog);
   }
 
   return 0;
