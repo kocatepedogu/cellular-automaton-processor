@@ -13,7 +13,7 @@ Two-dimensional heat equation solution. <br><br>Initially, there was a circle wi
 <img src="./examples/game-of-life.png" width="300px"><br>
 Glider pattern in Conway's Game of Life. The space is a toroidal array, so the pattern repeats itself forever.
 
-This is the simplest example and can be run with 6 bit registers in a 25x25 grid. It also works with 4 bit registers if the grid size is reduced to 8x8. This is currently the only one that is tested on an actual FPGA (Basys3 with F4PGA toolkit). The total number of cores in the simulations are 25x25=625.
+This is the simplest example and can be run with 6 bit registers in a 25x25 grid. It also works with 4 bit registers if the grid size is reduced to 8x8. This is currently the only one that is tested on an actual FPGA (Basys3 with F4PGA). The total number of cores in the simulations are 25x25=625.
 
 The above screenshots are taken from Verilator simulations. The assembly language sources of the example programs can be found in the examples directory. C++ and Verilog sources for the simulations are available under targets/verilator. 
 
