@@ -147,7 +147,7 @@ There are currently 17 instructions. The maximum number of different opcodes is 
 | 0             | fix      | Convert decimal to fixed point    | fix r1,r2         |
 | 1             | unfix    | Convert fixed point to decimal    | unfix r1,r2       |
 
-Most instructions are trivial. There are two instructions that require a little explanation.
+Most instructions are trivial. There are four instructions that require some explanation.
 
 The 'unl' (unless) instruction is used for conditional branches. It is a B-type instruction that jumps to the given label if the condition register is zero. It is intended to be used for implementing if statements in high level languages. For example the following code
 
