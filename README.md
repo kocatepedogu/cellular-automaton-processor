@@ -185,7 +185,7 @@ The 'fmul' instruction interprets values given in the source registers as fixed 
 
 The 'fix' instructions converts the integer value given in the second register to a fixed point value and writes the result to the first register. It uses the value of the internal 'precision' register.
 
-The 'unfix' instructon converts the fixed point value in the second register to an integer value and write the result to the first register. The fractional part is lost, so executing 'fix' after 'unfix' may not produce the same result. This instruction also uses the value of the internal 'precision' register.
+The 'unfix' instruction converts the fixed point value in the second register to an integer value and write the result to the first register. The fractional part is lost, so executing 'fix' after 'unfix' may not produce the same result. This instruction also uses the value of the internal 'precision' register.
 
 ## LICENSE
 
