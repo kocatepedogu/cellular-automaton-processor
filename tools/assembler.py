@@ -67,7 +67,7 @@ def read_source_file(file_name):
             if len(ln) == 0: continue
 
             # Remove comments
-            comment_begin = ln.find('#')
+            comment_begin = ln.find(';')
             if comment_begin != -1:
                 ln = ln[0:comment_begin]
             if len(ln) == 0:
