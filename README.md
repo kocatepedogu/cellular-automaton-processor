@@ -47,11 +47,17 @@ To run examples:
 |--------|-----------------|----------------|
 | 4 Bits | 4 Bits          | 8 Bits         |
 
+### B-Type
+
+| Opcode | Condition Register | Relative Branch Address (Word) |
+|--------|--------------------|--------------------------------|
+| 4 Bits | 4 Bits             | 8 Bits                         |
+
 ### J-Type
 
-| Opcode | Jump Address                     |
-|--------|----------------------------------|
-| 4 Bits | 12 Bits                          |
+| Opcode | Jump Address (Word) |
+|--------|---------------------|
+| 4 Bits | 12 Bits             |
 
 ## Registers
 
@@ -100,7 +106,7 @@ There are currently 15 instructions. The maximum number of different opcodes is 
 | Opcode | Mnemonic | Name                  | Type | Example          |
 |--------|----------|-----------------------|------|------------------|
 | 0      | li       | Load Immediate        |  I   | li r1,100        | 
-| 1      | unl      | Unless                |  I   | unl r1,elseLabel |
+| 1      | unl      | Unless                |  B   | unl r1,elseLabel |
 | 2      | add      | Add                   |  R   | add r1,r2,r3     |
 | 3      | sub      | Subtract              |  R   | sub r1,r2,r3     |
 | 4      | and      | Logical AND           |  R   | and r1,r2,r3     |
@@ -118,7 +124,7 @@ There are currently 15 instructions. The maximum number of different opcodes is 
 
 Most instructions are trivial. There are two instructions that require a little explanation.
 
-The 'unl' (unless) instruction is used for conditional branches. It is an I-type instruction that reads the value of the given register and jumps to the given label if the register is zero. It is intended to be used for implementing if statements in high level languages. For example the following code
+The 'unl' (unless) instruction is used for conditional branches. It is a B-type instruction that jumps to the given label if the condition register is zero. It is intended to be used for implementing if statements in high level languages. For example the following code
 
 ```
 video[threadIdx.y][threadIdx.x] = 0;
@@ -154,8 +160,6 @@ The 'fmul' instruction multiplies given two registers and internally stores the 
 
 ## LICENSE
 
-The assembler source and examples are released under GNU General Public License v3.0 or any later version.
+The assembler source and example programs are released under GNU General Public License v3.0 or any later version.
 
-The HDL sources are released under the Strongly Reciprocal CERN Open Hardware License Version 2 (CERN-OHL-S-2.0).
-
-The C++ sources associated with the Verilator simulation of the processor are licensed under the Strongly Reciprocal CERN Open Hardware License Version 2 (CERN-OHL-S-2.0).
+The HDL and C++ sources are released under the Strongly Reciprocal CERN Open Hardware License Version 2 (CERN-OHL-S-2.0).

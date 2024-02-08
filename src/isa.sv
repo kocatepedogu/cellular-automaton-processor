@@ -40,6 +40,7 @@ package isa;
   parameter program_counter_length = 12;
   parameter stack_pointer_length = 5;
   parameter immediate_length = 8;
+  parameter relative_branch_address_length = 8;
 
   typedef logic [11:0] pc_t;
   typedef logic [ 4:0] sp_t;
@@ -49,9 +50,11 @@ package isa;
   typedef logic        [15:0] instruction_t;
   typedef logic        [3 :0] opcode_t;
   typedef logic        [3 :0] target_reg_t;
+  typedef logic        [3 :0] condition_reg_t;
   typedef logic        [3 :0] source_reg_t;
   typedef logic        [11:0] jump_addr_t;
   typedef logic signed [7 :0] immediate_t;
+  typedef logic signed [7 :0] relative_branch_address_t;
 
   typedef logic signed [31:0] value_t;
   typedef logic signed [63:0] double_value_t;
@@ -63,6 +66,10 @@ package isa;
 
   function target_reg_t get_target_reg (input instruction_t instr);
     get_target_reg = instr[11:8];
+  endfunction
+
+  function condition_reg_t get_condition_reg (input instruction_t instr);
+    get_condition_reg = instr[11:8];
   endfunction
 
   function source_reg_t get_first_source (input instruction_t instr);
@@ -79,6 +86,10 @@ package isa;
 
   function jump_addr_t get_jump_addr (input instruction_t instr);
     get_jump_addr = instr[11:0];
+  endfunction
+
+  function relative_branch_address_t get_relative_branch_addr(input instruction_t instr);
+    get_relative_branch_addr = instr[7:0];
   endfunction
 
   function bit is_unconditional_branch (input opcode_t opcode);

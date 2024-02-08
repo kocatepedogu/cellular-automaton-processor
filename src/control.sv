@@ -19,7 +19,10 @@ module control (
 
   wire opcode_t opcode = get_opcode(instruction);
   wire jump_addr_t jump_addr = get_jump_addr(instruction);
-  wire immediate_t immediate = get_immediate(instruction);
+  wire relative_branch_address_t rel_branch_addr = get_relative_branch_addr(instruction);
+  wire jump_addr_t branch_addr = program_counter +
+    {{(program_counter_length - relative_branch_address_length){rel_branch_addr[relative_branch_address_length-1]}},
+      rel_branch_addr};
 
   always_comb begin
     case (opcode)
@@ -28,8 +31,7 @@ module control (
         next_stack_pointer = stack_pointer;
       end
       UNL: begin
-        next_program_counter = diverge_consensus ?
-          {(program_counter_length-immediate_length)'(0),immediate} : program_counter + 2;
+        next_program_counter = diverge_consensus ? branch_addr : program_counter + 2;
         next_stack_pointer = stack_pointer;
       end
       CALL: begin

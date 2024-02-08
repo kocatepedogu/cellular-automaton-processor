@@ -26,7 +26,10 @@ register_indices = {
 
 i_type_instructions = {
     'li':   0,
-    'unl':  1,
+}
+
+b_type_instructions = {
+    'unl':  1
 }
 
 r_type_instructions = {
@@ -117,6 +120,10 @@ def encode(substituted_source):
             opcode = i_type_instructions[mnemonic]
             target, imm = operands
             instr = (opcode & 0b1111) << 12 | (target & 0b1111) << 8 | (imm & 0b1111_1111)
+        elif mnemonic in b_type_instructions:
+            opcode = b_type_instructions[mnemonic]
+            condition_reg, branch_addr = operands
+            instr = (opcode & 0b1111) << 12 | (condition_reg & 0b1111) << 8 | ((branch_addr - pc) & 0b1111_1111)
         elif mnemonic in r_type_instructions:
             opcode = r_type_instructions[mnemonic]
             target, first, second = operands

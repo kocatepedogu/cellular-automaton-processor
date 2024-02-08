@@ -20,14 +20,16 @@ module core_control (
     output local_enable,
     output diverge
 );
-  reg  divergence_state = 0;
+  reg divergence_state = 0;
 
   pc_reg_t local_program_counter = 0;
   sp_reg_t local_stack_pointer = 0;
 
   wire opcode_t opcode = get_opcode(instruction);
-  wire target_reg_t target = get_target_reg(instruction);
-  wire immediate_t immediate = get_immediate(instruction);
+  wire relative_branch_address_t rel_branch_addr = get_relative_branch_addr(instruction);
+  wire jump_addr_t branch_addr = local_program_counter +
+    {{(program_counter_length - relative_branch_address_length){rel_branch_addr[relative_branch_address_length-1]}},
+      rel_branch_addr};
 
   assign diverge = (is_conditional_branch(opcode) && (~|target_value)) || divergence_state;
   assign local_enable = global_enable && (~diverge) && (~is_unconditional_branch(opcode));
@@ -43,8 +45,8 @@ module core_control (
           divergence_state <= 0;
       end else if (diverge)
       begin
-        local_program_counter <= (program_counter_length)'(immediate);
-        if (next_program_counter != (program_counter_length)'(immediate))
+        local_program_counter <= branch_addr;
+        if (next_program_counter != branch_addr)
           divergence_state <= 1;
       end else
       begin
