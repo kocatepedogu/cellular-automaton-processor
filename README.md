@@ -19,7 +19,7 @@ The above screenshots are taken from Verilator simulations. The assembly languag
 
 ## Running Examples
 
-A C++ compiler and Verilator are needed.
+A C++ compiler, Python 3 and Verilator are needed.
 
 To compile Verilator simulation:
 
