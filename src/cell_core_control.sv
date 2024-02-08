@@ -1,71 +1,53 @@
 // SPDX-FileCopyrightText: 2024 Doğu Kocatepe
 // SPDX-License-Identifier: CERN-OHL-S-2.0
 
-module cell_core_control #(parameter REGISTER_LENGTH = 8, parameter PC_LENGTH = 12,
-                           parameter SP_LENGTH = 5) (
+/* The main responsibility of cell control is to decide whether the core
+   is locally active and whether it will be active or not in the next cycle.
+   It also informs the global control about the branch decisions of the cell. */
+
+import isa::*;
+
+module cell_core_control (
     input clk,
     input rst,
 
-    input [REGISTER_LENGTH-1:0] target_value,
+    input value_t target_value,
+    input instruction_t instruction,
+    input pc_t next_program_counter,
+    input sp_t next_stack_pointer,
+    input global_enable,
 
-    input [15:0] instruction,
-    input [PC_LENGTH-1:0] next_program_counter,
-    input [SP_LENGTH-1:0] next_stack_pointer,
-    input execution_enable,
-
-    output enable,
-    output state_change_enable,
+    output local_enable,
     output diverge
 );
+  reg  divergence_state = 0;
 
-  reg  diverged = 0;
+  pc_reg_t local_program_counter = 0;
+  sp_reg_t local_stack_pointer = 0;
 
-  reg  [PC_LENGTH-1:0] local_program_counter = 0;
-  reg  [SP_LENGTH-1:0] local_stack_pointer = 0;
+  wire opcode_t opcode = get_opcode(instruction);
+  wire target_reg_t target = get_target_reg(instruction);
+  wire immediate_t immediate = get_immediate(instruction);
 
-  wire [3:0 ] opcode = instruction[15:12];
-  wire [3:0 ] target = instruction[11:8];
-  wire [7:0 ] immediate = instruction[7:0];
-  wire [11:0] jump_addr = instruction[11:0];
+  assign diverge = (is_conditional_branch(opcode) && (~|target_value)) || divergence_state;
+  assign local_enable = global_enable && (~diverge) && (~is_unconditional_branch(opcode));
 
-  // True if the current instruction is a conditional branch instruction
-  // and the condition evaluates to false
-  //
-  // In addition, the cell must also output a diverge signal if it has already
-  // diverged and not currently in sync with the other cells. Otherwise it would
-  // prevent a consensus required for other cells to exit a loop, meaning that
-  // the execution will never reach this cell leading to a deadlock.
-  assign diverge = ((opcode == `UNL) && (~|target_value)) || diverged;
-
-  // True if the current instruction is going to cause an unconditional branch.
-  wire unconditional_jump = opcode == `JUMP || opcode == `CALL || opcode == `RET;
-
-  /* If the cell is synchronized and it is not going to diverge or jump, then
-     it is allowed to change its state, or write to its registers. */
-  assign enable = execution_enable && (~diverge) && (~unconditional_jump);
-
-  /* If the target of the current operation is the "my" register and it is enabled,
-     the cell is going to change its state */
-  assign state_change_enable = enable && target == `REG_MY;
-
-  /* Sequential logic to decide the next local program counter value */
   always @(posedge clk) begin
-      if (rst) begin
+      if (rst)
+      begin
         local_program_counter <= 0;
-        diverged <= 0;
-      end else if (diverged) begin
-        // Activate the core in the next cycle if everyone else
-        // will be at the same program address.
+        divergence_state <= 0;
+      end else if (divergence_state)
+      begin
         if (next_program_counter == local_program_counter && next_stack_pointer == local_stack_pointer)
-          diverged <= 0;
-      end else if (diverge) begin
-        local_program_counter <= (PC_LENGTH)'(immediate);
-        // Deactivate the core if an unconditional branch
-        // is encountered and other cores are not going to
-        // follow us. (there is no global branch consensus)
-        if (next_program_counter != (PC_LENGTH)'(immediate))
-          diverged <= 1;
-      end else begin
+          divergence_state <= 0;
+      end else if (diverge)
+      begin
+        local_program_counter <= (program_counter_length)'(immediate);
+        if (next_program_counter != (program_counter_length)'(immediate))
+          divergence_state <= 1;
+      end else
+      begin
         local_program_counter <= next_program_counter;
         local_stack_pointer <= next_stack_pointer;
       end

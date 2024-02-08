@@ -8,9 +8,8 @@
 namespace Simulator {
   Simulation::Simulation(std::string program_file_name) {
     this->top = new Vtop;
-    this->grid_width = top->top->WIDTH;
-    this->grid_height = top->top->HEIGHT;
-    this->register_length = top->top->REGISTER_LENGTH;
+    this->grid_width = top->top->mp->width;
+    this->grid_height = top->top->mp->width;
     this->instruction_memory = new uint8_t[512];
 
     std::ifstream input_file(program_file_name);

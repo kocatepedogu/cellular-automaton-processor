@@ -5,7 +5,7 @@
 
 #include "Vtop.h"
 #include "Vtop_top.h"
-#include "Vtop_multiprocessor__W19_H19_R20.h"
+#include "Vtop_multiprocessor.h"
 
 namespace Simulator {
   class Simulation {
@@ -15,7 +15,6 @@ namespace Simulator {
   public:
     int grid_width;
     int grid_height;
-    int register_length;
 
     Vtop *top;
 

@@ -1,36 +1,33 @@
 // SPDX-FileCopyrightText: 2024 Doğu Kocatepe
 // SPDX-License-Identifier: CERN-OHL-S-2.0
 
-module multiprocessor #(
-    parameter WIDTH = 10,
-    parameter HEIGHT = 8,
-    parameter REGISTER_LENGTH = 8,
-    parameter PC_LENGTH = 12,
-    parameter SP_LENGTH = 5
-) (
+module multiprocessor (
     input clk,
     input rst,
 
-    input  [PC_LENGTH-1:0] next_program_counter,
-    input  [SP_LENGTH-1:0] next_stack_pointer,
+    input pc_t next_program_counter,
+    input sp_t next_stack_pointer,
 
-    input  [15:0] instruction,
-    input         execution_enable,
-    output reg    diverge_consensus
+    input instruction_t instruction,
+    input global_enable,
+    output reg diverge_consensus
 );
-    reg  [REGISTER_LENGTH-1:0] states[HEIGHT][WIDTH];
+    localparam integer width /*verilator public*/ = 25;
+    localparam integer height /*verilator public*/ = 25;
 
-    wire [REGISTER_LENGTH-1:0] nextstates[HEIGHT][WIDTH];
-    wire [REGISTER_LENGTH-1:0] nextvideo[HEIGHT][WIDTH] /*verilator public*/;
+    register_t states[height][width];
 
-    wire diverge[HEIGHT][WIDTH];
+    wire value_t nextstates[height][width];
+    wire value_t nextvideo[height][width] /*verilator public*/;
+
+    wire diverge[height][width];
 
     integer x;
     integer y;
     always_comb begin
       diverge_consensus = 1;
-      for (x=0; x < WIDTH; x=x+1) begin
-        for (y=0; y < HEIGHT; y=y+1) begin
+      for (x=0; x < width; x=x+1) begin
+        for (y=0; y < height; y=y+1) begin
           diverge_consensus = diverge_consensus & diverge[y][x];
         end
       end
@@ -40,16 +37,15 @@ module multiprocessor #(
     genvar j;
     generate
         // Top-Left Corner
-        cell_core #(.X(0),.Y(0),.REGISTER_LENGTH(REGISTER_LENGTH),
-                    .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellTopLeft (
+        cell_core #(.X(0),.Y(0)) cellTopLeft (
             .clk(clk),
             .rst(rst),
+            .global_enable(global_enable),
             .instruction(instruction),
             .next_program_counter(next_program_counter),
             .next_stack_pointer(next_stack_pointer),
-            .execution_enable(execution_enable),
-            .i01(states[HEIGHT-1][0]),
-            .i10(states[0][WIDTH-1]),
+            .i01(states[height-1][0]),
+            .i10(states[0][width-1]),
             .i11(states[0][0]),
             .i12(states[0][1]),
             .i21(states[1][0]),
@@ -59,35 +55,33 @@ module multiprocessor #(
         );
 
         // Top-Right Corner
-        cell_core #(.X(WIDTH-1),.Y(0),.REGISTER_LENGTH(REGISTER_LENGTH),
-                    .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellTopRight (
+        cell_core #(.X(width-1),.Y(0)) cellTopRight (
             .clk(clk),
             .rst(rst),
+            .global_enable(global_enable),
             .instruction(instruction),
             .next_program_counter(next_program_counter),
             .next_stack_pointer(next_stack_pointer),
-            .execution_enable(execution_enable),
-            .i01(states[HEIGHT-1][WIDTH-1]),
-            .i10(states[0][WIDTH-2]),
-            .i11(states[0][WIDTH-1]),
+            .i01(states[height-1][width-1]),
+            .i10(states[0][width-2]),
+            .i11(states[0][width-1]),
             .i12(states[0][0]),
-            .i21(states[1][WIDTH-1]),
-            .nextState(nextstates[0][WIDTH-1]),
-            .nextVideo(nextvideo[0][WIDTH-1]),
-            .diverge(diverge[0][WIDTH-1])
+            .i21(states[1][width-1]),
+            .nextState(nextstates[0][width-1]),
+            .nextVideo(nextvideo[0][width-1]),
+            .diverge(diverge[0][width-1])
         );
 
         // Top Line
-        for (i=1; i <= WIDTH - 2; i=i+1) begin
-            cell_core #(.X(i),.Y(0),.REGISTER_LENGTH(REGISTER_LENGTH),
-                        .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellTopLine (
+        for (i=1; i <= width - 2; i=i+1) begin
+            cell_core #(.X(i),.Y(0)) cellTopLine (
                 .clk(clk),
                 .rst(rst),
+                .global_enable(global_enable),
                 .instruction(instruction),
                 .next_program_counter(next_program_counter),
                 .next_stack_pointer(next_stack_pointer),
-                .execution_enable(execution_enable),
-                .i01(states[HEIGHT-1][i]),
+                .i01(states[height-1][i]),
                 .i10(states[0][i-1]),
                 .i11(states[0][i]),
                 .i12(states[0][i+1]),
@@ -99,76 +93,72 @@ module multiprocessor #(
         end
 
         // Bottom-Left Corner
-        cell_core #(.X(0),.Y(HEIGHT-1),.REGISTER_LENGTH(REGISTER_LENGTH),
-                    .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellBottomLeft (
+        cell_core #(.X(0),.Y(height-1)) cellBottomLeft (
             .clk(clk),
             .rst(rst),
+            .global_enable(global_enable),
             .instruction(instruction),
             .next_program_counter(next_program_counter),
             .next_stack_pointer(next_stack_pointer),
-            .execution_enable(execution_enable),
-            .i01(states[HEIGHT-2][0]),
-            .i10(states[HEIGHT-1][WIDTH-1]),
-            .i11(states[HEIGHT-1][0]),
-            .i12(states[HEIGHT-1][1]),
+            .i01(states[height-2][0]),
+            .i10(states[height-1][width-1]),
+            .i11(states[height-1][0]),
+            .i12(states[height-1][1]),
             .i21(states[0][0]),
-            .nextState(nextstates[HEIGHT-1][0]),
-            .nextVideo(nextvideo[HEIGHT-1][0]),
-            .diverge(diverge[HEIGHT-1][0])
+            .nextState(nextstates[height-1][0]),
+            .nextVideo(nextvideo[height-1][0]),
+            .diverge(diverge[height-1][0])
         );
 
         // Bottom-Right Corner
-        cell_core #(.X(WIDTH-1),.Y(HEIGHT-1),.REGISTER_LENGTH(REGISTER_LENGTH),
-                    .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellBottomRight (
+        cell_core #(.X(width-1),.Y(height-1)) cellBottomRight (
             .clk(clk),
             .rst(rst),
+            .global_enable(global_enable),
             .instruction(instruction),
             .next_program_counter(next_program_counter),
             .next_stack_pointer(next_stack_pointer),
-            .execution_enable(execution_enable),
-            .i01(states[HEIGHT-2][WIDTH-1]),
-            .i10(states[HEIGHT-1][WIDTH-2]),
-            .i11(states[HEIGHT-1][WIDTH-1]),
-            .i12(states[HEIGHT-1][0]),
-            .i21(states[0][WIDTH-1]),
-            .nextState(nextstates[HEIGHT-1][WIDTH-1]),
-            .nextVideo(nextvideo[HEIGHT-1][WIDTH-1]),
-            .diverge(diverge[HEIGHT-1][WIDTH-1])
+            .i01(states[height-2][width-1]),
+            .i10(states[height-1][width-2]),
+            .i11(states[height-1][width-1]),
+            .i12(states[height-1][0]),
+            .i21(states[0][width-1]),
+            .nextState(nextstates[height-1][width-1]),
+            .nextVideo(nextvideo[height-1][width-1]),
+            .diverge(diverge[height-1][width-1])
         );
 
         // Bottom Line
-        for (i=1; i <= WIDTH - 2; i=i+1) begin
-            cell_core #(.X(i),.Y(HEIGHT-1),.REGISTER_LENGTH(REGISTER_LENGTH),
-                        .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellBottomLine (
+        for (i=1; i <= width - 2; i=i+1) begin
+            cell_core #(.X(i),.Y(height-1)) cellBottomLine (
                 .clk(clk),
                 .rst(rst),
+                .global_enable(global_enable),
                 .instruction(instruction),
                 .next_program_counter(next_program_counter),
                 .next_stack_pointer(next_stack_pointer),
-                .execution_enable(execution_enable),
-                .i01(states[HEIGHT-2][i]),
-                .i10(states[HEIGHT-1][i-1]),
-                .i11(states[HEIGHT-1][i]),
-                .i12(states[HEIGHT-1][i+1]),
+                .i01(states[height-2][i]),
+                .i10(states[height-1][i-1]),
+                .i11(states[height-1][i]),
+                .i12(states[height-1][i+1]),
                 .i21(states[0][i]),
-                .nextState(nextstates[HEIGHT-1][i]),
-                .nextVideo(nextvideo[HEIGHT-1][i]),
-                .diverge(diverge[HEIGHT-1][i])
+                .nextState(nextstates[height-1][i]),
+                .nextVideo(nextvideo[height-1][i]),
+                .diverge(diverge[height-1][i])
             );
         end
 
         // Left Line
-        for (i=1; i <= HEIGHT - 2; i=i+1) begin
-            cell_core #(.X(0),.Y(i),.REGISTER_LENGTH(REGISTER_LENGTH),
-                        .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellLeftLine (
+        for (i=1; i <= height - 2; i=i+1) begin
+            cell_core #(.X(0),.Y(i)) cellLeftLine (
                 .clk(clk),
                 .rst(rst),
+                .global_enable(global_enable),
                 .instruction(instruction),
                 .next_program_counter(next_program_counter),
                 .next_stack_pointer(next_stack_pointer),
-                .execution_enable(execution_enable),
                 .i01(states[i-1][0]),
-                .i10(states[i][WIDTH-1]),
+                .i10(states[i][width-1]),
                 .i11(states[i][0]),
                 .i12(states[i][1]),
                 .i21(states[i+1][0]),
@@ -179,37 +169,35 @@ module multiprocessor #(
         end
 
         // Right Line
-        for (i=1; i <= HEIGHT - 2; i=i+1) begin
-            cell_core #(.X(WIDTH-1),.Y(i),.REGISTER_LENGTH(REGISTER_LENGTH),
-                        .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellRightLine (
+        for (i=1; i <= height - 2; i=i+1) begin
+            cell_core #(.X(width-1),.Y(i)) cellRightLine (
                 .clk(clk),
                 .rst(rst),
+                .global_enable(global_enable),
                 .instruction(instruction),
                 .next_program_counter(next_program_counter),
                 .next_stack_pointer(next_stack_pointer),
-                .execution_enable(execution_enable),
-                .i01(states[i-1][WIDTH-1]),
-                .i10(states[i][WIDTH-2]),
-                .i11(states[i][WIDTH-1]),
+                .i01(states[i-1][width-1]),
+                .i10(states[i][width-2]),
+                .i11(states[i][width-1]),
                 .i12(states[i][0]),
-                .i21(states[i+1][WIDTH-1]),
-                .nextState(nextstates[i][WIDTH-1]),
-                .nextVideo(nextvideo[i][WIDTH-1]),
-                .diverge(diverge[i][WIDTH-1])
+                .i21(states[i+1][width-1]),
+                .nextState(nextstates[i][width-1]),
+                .nextVideo(nextvideo[i][width-1]),
+                .diverge(diverge[i][width-1])
             );
         end
 
         // Inside
-        for (i=1; i <= WIDTH - 2; i=i+1) begin
-            for (j=1; j <= HEIGHT - 2; j=j+1) begin
-                cell_core #(.X(i),.Y(j),.REGISTER_LENGTH(REGISTER_LENGTH),
-                            .PC_LENGTH(PC_LENGTH),.SP_LENGTH(SP_LENGTH)) cellInside (
+        for (i=1; i <= width - 2; i=i+1) begin
+            for (j=1; j <= height - 2; j=j+1) begin
+                cell_core #(.X(i),.Y(j)) cellInside (
                     .clk(clk),
                     .rst(rst),
+                    .global_enable(global_enable),
                     .instruction(instruction),
                     .next_program_counter(next_program_counter),
                     .next_stack_pointer(next_stack_pointer),
-                    .execution_enable(execution_enable),
                     .i01(states[j-1][i]),
                     .i10(states[j][i-1]),
                     .i11(states[j][i]),
@@ -222,13 +210,13 @@ module multiprocessor #(
             end
         end
 
-        for (i = 0; i < WIDTH; i=i+1) begin
-            for (j = 0; j < HEIGHT; j=j+1) begin
+        for (i = 0; i < width; i=i+1) begin
+            for (j = 0; j < height; j=j+1) begin
                 always @(posedge clk) begin
                     if (rst) begin
                         states[j][i] <= 0;
                     end else begin
-                        if (execution_enable)
+                        if (global_enable)
                           states[j][i] <= nextstates[j][i];
                     end
                 end

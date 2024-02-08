@@ -1,41 +1,42 @@
 // SPDX-FileCopyrightText: 2024 Doğu Kocatepe
 // SPDX-License-Identifier: CERN-OHL-S-2.0
 
-`include "isa.sv"
+import isa::*;
 
-module control #(parameter PC_LENGTH = 12, parameter SP_LENGTH = 5)(
+module control (
     input clk,
     input rst,
 
-    input [15:0] instruction,
-    output reg [PC_LENGTH-1:0] program_counter,
-    output reg [PC_LENGTH-1:0] next_program_counter,
-    output reg [SP_LENGTH-1:0] next_stack_pointer,
+    input instruction_t instruction,
+    output pc_reg_t program_counter,
+    output pc_reg_t next_program_counter,
+    output sp_reg_t next_stack_pointer,
     input diverge_consensus
 );
 
-  reg  [PC_LENGTH-1:0] call_stack [32];
-  reg  [SP_LENGTH-1:0] stack_pointer;
+  pc_reg_t call_stack [32];
+  sp_reg_t stack_pointer;
 
-  wire [3: 0] opcode = instruction[15:12];
-  wire [11:0] jump_addr = instruction[11:0];
-  wire [7:0 ] immediate = instruction[7:0];
+  wire opcode_t opcode = get_opcode(instruction);
+  wire jump_addr_t jump_addr = get_jump_addr(instruction);
+  wire immediate_t immediate = get_immediate(instruction);
 
   always_comb begin
     case (opcode)
-      `JUMP: begin
+      JUMP: begin
         next_program_counter = jump_addr;
         next_stack_pointer = stack_pointer;
       end
-      `UNL: begin
-        next_program_counter = diverge_consensus ? {4'b0,immediate} : program_counter + 2;
+      UNL: begin
+        next_program_counter = diverge_consensus ?
+          {(program_counter_length-immediate_length)'(0),immediate} : program_counter + 2;
         next_stack_pointer = stack_pointer;
       end
-      `CALL: begin
+      CALL: begin
         next_program_counter = jump_addr;
         next_stack_pointer = stack_pointer + 2;
       end
-      `RET: begin
+      RET: begin
         next_program_counter = call_stack[stack_pointer - 2];
         next_stack_pointer = stack_pointer - 2;
       end
@@ -48,10 +49,10 @@ module control #(parameter PC_LENGTH = 12, parameter SP_LENGTH = 5)(
 
   always @(posedge clk) begin
     if (rst) begin
-      program_counter <= (PC_LENGTH)'(0);
-      stack_pointer <= (SP_LENGTH)'(0);
+      program_counter <= (program_counter_length)'(0);
+      stack_pointer <= (stack_pointer_length)'(0);
     end else begin
-      if (opcode == `CALL)
+      if (opcode == CALL)
         call_stack[stack_pointer] <= program_counter + 2;
 
       program_counter <= next_program_counter;

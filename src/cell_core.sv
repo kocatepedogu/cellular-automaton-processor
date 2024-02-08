@@ -1,57 +1,64 @@
 // SPDX-FileCopyrightText: 2024 Doğu Kocatepe
 // SPDX-License-Identifier: CERN-OHL-S-2.0
 
-`include "isa.sv"
+import isa::*;
 
-module cell_core #(parameter X = 0, parameter Y = 0, parameter REGISTER_LENGTH = 8,
-                   parameter PC_LENGTH = 12, parameter SP_LENGTH = 5) (
-    input clk,
-    input rst,
-    input  [15:0] instruction,
-    input  [PC_LENGTH-1:0] next_program_counter,
-    input  [SP_LENGTH-1:0] next_stack_pointer,
-    input  execution_enable,
-    input  [REGISTER_LENGTH-1:0] i01,
-    input  [REGISTER_LENGTH-1:0] i10,
-    input  [REGISTER_LENGTH-1:0] i11,
-    input  [REGISTER_LENGTH-1:0] i12,
-    input  [REGISTER_LENGTH-1:0] i21,
-    output [REGISTER_LENGTH-1:0] nextState,
-    output reg [REGISTER_LENGTH-1:0] nextVideo,
+module cell_core #(parameter X = 0, parameter Y = 0) (
+    input  clk,
+    input  rst,
+    input  global_enable,
+
+    input  instruction_t instruction,
+    input  pc_t next_program_counter,
+    input  sp_t next_stack_pointer,
+
+    input  value_t i01,
+    input  value_t i10,
+    input  value_t i11,
+    input  value_t i12,
+    input  value_t i21,
+
+    output value_t nextState,
+    output value_t nextVideo,
     output diverge
 );
-    reg  [REGISTER_LENGTH-1:0] regs [9];
-    wire [REGISTER_LENGTH-1:0] inputs [16];
+    register_t regs [9];
+    register_t video;
 
-    assign inputs[`REG_MY] = i11;
-    assign inputs[`REG_R1] = regs[`REG_R1];
-    assign inputs[`REG_R2] = regs[`REG_R2];
-    assign inputs[`REG_R3] = regs[`REG_R3];
-    assign inputs[`REG_R4] = regs[`REG_R4];
-    assign inputs[`REG_R5] = regs[`REG_R5];
-    assign inputs[`REG_R6] = regs[`REG_R6];
-    assign inputs[`REG_R7] = regs[`REG_R7];
-    assign inputs[`REG_R8] = regs[`REG_R8];
-    assign inputs[`REG_ZERO] = 0;
-    assign inputs[`REG_X] = (REGISTER_LENGTH)'(X);
-    assign inputs[`REG_Y] = (REGISTER_LENGTH)'(Y);
-    assign inputs[`REG_XMINUS] = i10;
-    assign inputs[`REG_XPLUS] = i12;
-    assign inputs[`REG_YMINUS] = i01;
-    assign inputs[`REG_YPLUS] = i21;
+    wire value_t inputs [16];
 
-    wire [3:0] opcode = instruction[15:12];
-    wire [3:0] target = instruction[11:8];
-    wire [3:0] first_operand = instruction[7:4];
-    wire [3:0] second_operand = instruction[3:0];
-    wire [7:0] immediate = instruction[7:0];
+    assign inputs[REG_MY] = i11;
+    assign inputs[REG_R1] = regs[REG_R1];
+    assign inputs[REG_R2] = regs[REG_R2];
+    assign inputs[REG_R3] = regs[REG_R3];
+    assign inputs[REG_R4] = regs[REG_R4];
+    assign inputs[REG_R5] = regs[REG_R5];
+    assign inputs[REG_R6] = regs[REG_R6];
+    assign inputs[REG_R7] = regs[REG_R7];
+    assign inputs[REG_R8] = regs[REG_R8];
+    assign inputs[REG_ZERO] = 0;
+    assign inputs[REG_X] = (register_length)'(X);
+    assign inputs[REG_Y] = (register_length)'(Y);
+    assign inputs[REG_XMINUS] = i10;
+    assign inputs[REG_XPLUS] = i12;
+    assign inputs[REG_YMINUS] = i01;
+    assign inputs[REG_YPLUS] = i21;
 
-    wire [REGISTER_LENGTH-1:0] target_value = inputs[target];
-    wire [REGISTER_LENGTH-1:0] first_operand_value = inputs[first_operand];
-    wire [REGISTER_LENGTH-1:0] second_operand_value = inputs[second_operand];
-    wire [REGISTER_LENGTH-1:0] alu_result;
+    wire opcode_t opcode = get_opcode(instruction);
+    wire target_reg_t target = get_target_reg(instruction);
+    wire source_reg_t first_operand = get_first_source(instruction);
+    wire source_reg_t second_operand = get_second_source(instruction);
+    wire immediate_t immediate = get_immediate(instruction);
 
-    cell_core_alu #(.REGISTER_LENGTH(REGISTER_LENGTH)) alu (
+    wire value_t target_value = inputs[target];
+    wire value_t first_operand_value = inputs[first_operand];
+    wire value_t second_operand_value = inputs[second_operand];
+    wire value_t alu_result;
+
+    wire local_enable;
+    wire state_change_enable;
+
+    cell_core_alu alu (
       .opcode(opcode),
       .immediate(immediate),
       .first_operand_value(first_operand_value),
@@ -59,21 +66,15 @@ module cell_core #(parameter X = 0, parameter Y = 0, parameter REGISTER_LENGTH =
       .result(alu_result)
     );
 
-    wire enable;
-    wire state_change_enable;
-
-    cell_core_control #(.REGISTER_LENGTH(REGISTER_LENGTH),
-                        .PC_LENGTH(PC_LENGTH),
-                        .SP_LENGTH(SP_LENGTH)) cntrl (
+    cell_core_control cntrl (
       .clk(clk),
       .rst(rst),
       .target_value(target_value),
       .instruction(instruction),
       .next_program_counter(next_program_counter),
       .next_stack_pointer(next_stack_pointer),
-      .execution_enable(execution_enable),
-      .enable(enable),
-      .state_change_enable(state_change_enable),
+      .global_enable(global_enable),
+      .local_enable(local_enable),
       .diverge(diverge)
     );
 
@@ -83,13 +84,14 @@ module cell_core #(parameter X = 0, parameter Y = 0, parameter REGISTER_LENGTH =
         for (i=0; i < 9; i=i+1) begin
           regs[i] <= 0;
         end
-      end else if (enable) begin
+      end else if (local_enable) begin
         case (target)
-          `REG_VIDEO: nextVideo <= alu_result;
+          REG_VIDEO: video <= alu_result;
           default: regs[target] <= alu_result;
         endcase
       end
     end
 
-    assign nextState = state_change_enable ? alu_result : i11;
+    assign nextState = (local_enable && target == REG_MY) ? alu_result : i11;
+    assign nextVideo = video;
 endmodule
