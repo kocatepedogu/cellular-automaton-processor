@@ -3,7 +3,7 @@
 
 import isa::*;
 
-module cell_core #(parameter X = 0, parameter Y = 0) (
+module core #(parameter X = 0, parameter Y = 0) (
     input  clk,
     input  rst,
     input  global_enable,
@@ -58,7 +58,7 @@ module cell_core #(parameter X = 0, parameter Y = 0) (
     wire local_enable;
     wire state_change_enable;
 
-    cell_core_alu alu (
+    core_alu alu (
       .opcode(opcode),
       .immediate(immediate),
       .first_operand_value(first_operand_value),
@@ -66,7 +66,7 @@ module cell_core #(parameter X = 0, parameter Y = 0) (
       .result(alu_result)
     );
 
-    cell_core_control cntrl (
+    core_control cntrl (
       .clk(clk),
       .rst(rst),
       .target_value(target_value),

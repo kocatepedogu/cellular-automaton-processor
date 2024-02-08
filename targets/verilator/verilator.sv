@@ -25,7 +25,7 @@ module top (
     .diverge_consensus(diverge_consensus)
   );
 
-  multiprocessor mp (
+  grid mp (
     .clk(clk),
     .rst(rst),
 

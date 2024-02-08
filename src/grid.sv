@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Doğu Kocatepe
 // SPDX-License-Identifier: CERN-OHL-S-2.0
 
-module multiprocessor (
+module grid (
     input clk,
     input rst,
 
@@ -37,7 +37,7 @@ module multiprocessor (
     genvar j;
     generate
         // Top-Left Corner
-        cell_core #(.X(0),.Y(0)) cellTopLeft (
+        core #(.X(0),.Y(0)) cellTopLeft (
             .clk(clk),
             .rst(rst),
             .global_enable(global_enable),
@@ -55,7 +55,7 @@ module multiprocessor (
         );
 
         // Top-Right Corner
-        cell_core #(.X(width-1),.Y(0)) cellTopRight (
+        core #(.X(width-1),.Y(0)) cellTopRight (
             .clk(clk),
             .rst(rst),
             .global_enable(global_enable),
@@ -74,7 +74,7 @@ module multiprocessor (
 
         // Top Line
         for (i=1; i <= width - 2; i=i+1) begin
-            cell_core #(.X(i),.Y(0)) cellTopLine (
+            core #(.X(i),.Y(0)) cellTopLine (
                 .clk(clk),
                 .rst(rst),
                 .global_enable(global_enable),
@@ -93,7 +93,7 @@ module multiprocessor (
         end
 
         // Bottom-Left Corner
-        cell_core #(.X(0),.Y(height-1)) cellBottomLeft (
+        core #(.X(0),.Y(height-1)) cellBottomLeft (
             .clk(clk),
             .rst(rst),
             .global_enable(global_enable),
@@ -111,7 +111,7 @@ module multiprocessor (
         );
 
         // Bottom-Right Corner
-        cell_core #(.X(width-1),.Y(height-1)) cellBottomRight (
+        core #(.X(width-1),.Y(height-1)) cellBottomRight (
             .clk(clk),
             .rst(rst),
             .global_enable(global_enable),
@@ -130,7 +130,7 @@ module multiprocessor (
 
         // Bottom Line
         for (i=1; i <= width - 2; i=i+1) begin
-            cell_core #(.X(i),.Y(height-1)) cellBottomLine (
+            core #(.X(i),.Y(height-1)) cellBottomLine (
                 .clk(clk),
                 .rst(rst),
                 .global_enable(global_enable),
@@ -150,7 +150,7 @@ module multiprocessor (
 
         // Left Line
         for (i=1; i <= height - 2; i=i+1) begin
-            cell_core #(.X(0),.Y(i)) cellLeftLine (
+            core #(.X(0),.Y(i)) cellLeftLine (
                 .clk(clk),
                 .rst(rst),
                 .global_enable(global_enable),
@@ -170,7 +170,7 @@ module multiprocessor (
 
         // Right Line
         for (i=1; i <= height - 2; i=i+1) begin
-            cell_core #(.X(width-1),.Y(i)) cellRightLine (
+            core #(.X(width-1),.Y(i)) cellRightLine (
                 .clk(clk),
                 .rst(rst),
                 .global_enable(global_enable),
@@ -191,7 +191,7 @@ module multiprocessor (
         // Inside
         for (i=1; i <= width - 2; i=i+1) begin
             for (j=1; j <= height - 2; j=j+1) begin
-                cell_core #(.X(i),.Y(j)) cellInside (
+                core #(.X(i),.Y(j)) cellInside (
                     .clk(clk),
                     .rst(rst),
                     .global_enable(global_enable),

@@ -3,7 +3,7 @@
 
 import isa::*;
 
-module cell_core_alu (
+module core_alu (
     input  opcode_t opcode,
     input  immediate_t immediate,
     input  value_t first_operand_value,

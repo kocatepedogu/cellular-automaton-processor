@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2024 Doğu Kocatepe
 // SPDX-License-Identifier: CERN-OHL-S-2.0
 
-/* The main responsibility of cell control is to decide whether the core
+/* The main responsibility of core control is to decide whether the core
    is locally active and whether it will be active or not in the next cycle.
-   It also informs the global control about the branch decisions of the cell. */
+   It also informs the global control about the branch decisions of the core. */
 
 import isa::*;
 
-module cell_core_control (
+module core_control (
     input clk,
     input rst,
 

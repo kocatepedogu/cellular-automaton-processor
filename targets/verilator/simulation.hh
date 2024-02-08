@@ -5,7 +5,7 @@
 
 #include "Vtop.h"
 #include "Vtop_top.h"
-#include "Vtop_multiprocessor.h"
+#include "Vtop_grid.h"
 
 namespace Simulator {
   class Simulation {

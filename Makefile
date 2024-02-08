@@ -9,10 +9,10 @@ top: Vtop.mk
 
 
 Vtop.mk: ./src/isa.sv \
-         ./src/cell_core_alu.sv \
-         ./src/cell_core_control.sv \
-         ./src/cell_core.sv \
-         ./src/multiprocessor.sv \
+         ./src/core/core_alu.sv \
+         ./src/core/core_control.sv \
+         ./src/core/core.sv \
+         ./src/grid.sv \
          ./src/control.sv \
          ./targets/verilator/verilator.sv
 	verilator ${VFLAGS} \
