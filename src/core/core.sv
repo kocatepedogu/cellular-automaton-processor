@@ -14,20 +14,18 @@ module core #(parameter X = 0, parameter Y = 0) (
 
     input  value_t i01,
     input  value_t i10,
-    input  value_t i11,
+    output value_t i11,
     input  value_t i12,
     input  value_t i21,
 
-    output value_t nextState,
-    output value_t nextVideo,
+    output value_t video,
     output diverge
 );
-    register_t regs [9];
-    register_t video;
+    register_t regs [10];
 
     wire value_t inputs [16];
 
-    assign inputs[REG_MY] = i11;
+    assign inputs[REG_MY] = regs[REG_MY];
     assign inputs[REG_R1] = regs[REG_R1];
     assign inputs[REG_R2] = regs[REG_R2];
     assign inputs[REG_R3] = regs[REG_R3];
@@ -81,17 +79,14 @@ module core #(parameter X = 0, parameter Y = 0) (
     integer i;
     always @(posedge clk) begin
       if (rst) begin
-        for (i=0; i < 9; i=i+1) begin
+        for (i=0; i < 10; i=i+1) begin
           regs[i] <= 0;
         end
       end else if (local_enable) begin
-        case (target)
-          REG_VIDEO: video <= alu_result;
-          default: regs[target] <= alu_result;
-        endcase
+          regs[target] <= alu_result;
       end
     end
 
-    assign nextState = (local_enable && target == REG_MY) ? alu_result : i11;
-    assign nextVideo = video;
+    assign i11 = regs[REG_MY];
+    assign video = regs[REG_VIDEO];
 endmodule

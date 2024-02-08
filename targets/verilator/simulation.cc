@@ -55,6 +55,6 @@ namespace Simulator {
   }
 
   int Simulation::getState(int x, int y) {
-    return y < grid_height && x < grid_width ? top->top->mp->nextvideo[y][x] : 0;
+    return y < grid_height && x < grid_width ? top->top->mp->video[y][x] : 0;
   }
 }
