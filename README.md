@@ -96,10 +96,10 @@ To run examples:
 
 <br> The registers in the second table behave differently from the previous ones. The registers 'zero', 'x', 'y', 'x-', 'x+', 'y-' and 'y+' are read-only, and trying to write to them is undefined behavior.
 
-| Value | Name      | Description                     |
-|-------|-----------|---------------------------------|
-| 9     | video     | Reading always yields zero      |
-| 10    | precision | x coordinate of the core itself |
+| Value | Name      | Description                            |
+|-------|-----------|----------------------------------------|
+| 9     | video     | Reading always yields zero             |
+| 10    | precision | Number of bits for the fractional part |
 
 <br> The registers 'video' and 'precision' are write-only, and trying to read their existing values is undefined behavior.
 
