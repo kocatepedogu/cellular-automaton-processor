@@ -15,13 +15,13 @@ register_indices = {
     'r7': 7,
     'r8': 8,
 
-    'zero': 9, 'video': 9,
-    'x':  10,
-    'y':  11,
-    'x-': 12,
-    'x+': 13,
-    'y-': 14,
-    'y+': 15,
+    'zero': 9, 'video':      9,
+    'x':   10, 'precision': 10,
+    'y':   11,
+    'x-':  12,
+    'x+':  13,
+    'y-':  14,
+    'y+':  15,
 }
 
 i_type_instructions = {
@@ -49,6 +49,11 @@ j_type_instructions = {
     'j':    12,
     'call': 13,
     'ret':  14
+}
+
+e_type_instructions = {
+  'fix': 0,
+  'unfix': 1
 }
 
 def initialize_register_indices():
@@ -132,6 +137,11 @@ def encode(substituted_source):
             opcode = j_type_instructions[mnemonic]
             addr = operands[0]
             instr = (opcode & 0b1111) << 12 | ((addr >> 1) & 0b1111_1111_1111)
+        elif mnemonic in e_type_instructions:
+            opcode = 15
+            function_code = e_type_instructions[mnemonic]
+            first, second = operands
+            instr = (opcode & 0b1111) << 12 | (function_code & 0b1111) << 8 | (first & 0b1111) << 4 | (second & 0b1111)
         else:
             raise Exception('Unknown instruction')
 

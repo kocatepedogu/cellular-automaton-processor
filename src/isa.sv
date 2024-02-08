@@ -12,29 +12,33 @@ package isa;
   parameter REG_R7 = 7;
   parameter REG_R8 = 8;
   parameter REG_ZERO = 9;
-  parameter REG_VIDEO = 9;
   parameter REG_X = 10;
   parameter REG_Y = 11;
   parameter REG_XMINUS = 12;
   parameter REG_XPLUS = 13;
   parameter REG_YMINUS = 14;
   parameter REG_YPLUS = 15;
+  parameter REG_VIDEO = 9;
+  parameter REG_PRECISION = 10;
 
-  parameter LI = 4'd0;
-  parameter UNL = 4'd1;
-  parameter ADD = 4'd2;
-  parameter SUB = 4'd3;
-  parameter AND = 4'd4;
-  parameter OR = 4'd5;
-  parameter NOR = 4'd6;
-  parameter SEQ = 4'd7;
-  parameter SLT = 4'd8;
-  parameter MUL = 4'd9;
-  parameter SHR = 4'd10;
-  parameter FMUL = 4'd11;
-  parameter JUMP = 4'd12;
-  parameter CALL = 4'd13;
-  parameter RET = 4'd14;
+  parameter LI = 0;
+  parameter UNL = 1;
+  parameter ADD = 2;
+  parameter SUB = 3;
+  parameter AND = 4;
+  parameter OR = 5;
+  parameter NOR = 6;
+  parameter SEQ = 7;
+  parameter SLT = 8;
+  parameter MUL = 9;
+  parameter SHR = 10;
+  parameter FMUL = 11;
+  parameter JUMP = 12;
+  parameter CALL = 13;
+  parameter RET = 14;
+  parameter EXT = 15;
+  parameter FIX = 16;
+  parameter UNFIX = 17;
 
   parameter register_length = 32;
   parameter program_counter_length = 12;
@@ -42,13 +46,14 @@ package isa;
   parameter immediate_length = 8;
   parameter relative_branch_address_length = 8;
 
-  typedef logic [11:0] pc_t;
-  typedef logic [ 4:0] sp_t;
-  typedef reg   [11:0] pc_reg_t;
-  typedef reg   [ 4:0] sp_reg_t;
+  typedef logic [program_counter_length-1:0] pc_t;
+  typedef logic [stack_pointer_length-1:0] sp_t;
+  typedef reg   [program_counter_length-1:0] pc_reg_t;
+  typedef reg   [stack_pointer_length-1:0] sp_reg_t;
 
   typedef logic        [15:0] instruction_t;
   typedef logic        [3 :0] opcode_t;
+  typedef logic        [3 :0] function_code_t;
   typedef logic        [3 :0] target_reg_t;
   typedef logic        [3 :0] condition_reg_t;
   typedef logic        [3 :0] source_reg_t;
@@ -56,12 +61,16 @@ package isa;
   typedef logic signed [7 :0] immediate_t;
   typedef logic signed [7 :0] relative_branch_address_t;
 
-  typedef logic signed [31:0] value_t;
-  typedef logic signed [63:0] double_value_t;
-  typedef reg   signed [31:0] register_t;
+  typedef logic signed [register_length-1  :0] value_t;
+  typedef logic signed [2*register_length-1:0] double_value_t;
+  typedef reg   signed [register_length-1  :0] register_t;
 
   function opcode_t get_opcode (input instruction_t instr);
     get_opcode = instr[15:12];
+  endfunction
+
+  function function_code_t get_function_code (input instruction_t instr);
+    get_function_code = instr[11:8];
   endfunction
 
   function target_reg_t get_target_reg (input instruction_t instr);

@@ -14,8 +14,8 @@ module grid (
 );
     // Grid Dimensions
 
-    localparam integer width /*verilator public*/ = 25;
-    localparam integer height /*verilator public*/ = 25;
+    localparam integer width /*verilator public*/ = 50;
+    localparam integer height /*verilator public*/ = 50;
 
     wire value_t states[height][width];
     wire value_t video[height][width] /*verilator public*/;

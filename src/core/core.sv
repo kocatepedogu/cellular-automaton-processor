@@ -21,10 +21,9 @@ module core #(parameter X = 0, parameter Y = 0) (
     output value_t video,
     output diverge
 );
-    register_t regs [10];
+    register_t regs [11];
 
-    wire value_t inputs [16];
-
+    wire   value_t inputs [16];
     assign inputs[REG_RS] = regs[REG_RS];
     assign inputs[REG_R1] = regs[REG_R1];
     assign inputs[REG_R2] = regs[REG_R2];
@@ -43,10 +42,12 @@ module core #(parameter X = 0, parameter Y = 0) (
     assign inputs[REG_YPLUS] = i21;
 
     wire opcode_t opcode = get_opcode(instruction);
+    wire function_code_t function_code = get_function_code(instruction);
     wire target_reg_t target = get_target_reg(instruction);
     wire source_reg_t first_operand = get_first_source(instruction);
     wire source_reg_t second_operand = get_second_source(instruction);
     wire immediate_t immediate = get_immediate(instruction);
+    wire extended = (opcode == EXT);
 
     wire value_t target_value = inputs[target];
     wire value_t first_operand_value = inputs[first_operand];
@@ -57,10 +58,11 @@ module core #(parameter X = 0, parameter Y = 0) (
     wire state_change_enable;
 
     core_alu alu (
-      .opcode(opcode),
+      .aluop({extended, extended ? function_code : opcode}),
       .immediate(immediate),
       .first_operand_value(first_operand_value),
       .second_operand_value(second_operand_value),
+      .precision(regs[REG_PRECISION][4:0]),
       .result(alu_result)
     );
 
@@ -79,11 +81,11 @@ module core #(parameter X = 0, parameter Y = 0) (
     integer i;
     always @(posedge clk) begin
       if (rst) begin
-        for (i=0; i < 10; i=i+1) begin
+        for (i=0; i < 10; i=i+1)
           regs[i] <= 0;
-        end
+        regs[REG_PRECISION] <= register_length / 2;
       end else if (local_enable) begin
-          regs[target] <= alu_result;
+          regs[extended ? first_operand : target] <= alu_result;
       end
     end
 

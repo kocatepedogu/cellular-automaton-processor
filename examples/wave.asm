@@ -1,21 +1,16 @@
 ; SPDX-FileCopyrightText: 2024 Doğu Kocatepe
 ; SPDX-License-Identifier: GPL-3.0-or-later
 
+li precision,16
+
 ; ------- Constants -------
 
-; Let r6 = 16.
-li r6,16
+; Let dt^2 = r8 = 1/2048
 
-; Let r7 = 2**16.
-li r7,128
-mul r7,r7,r7
-li r2,2
-mul r7,r7,r2
-mul r7,r7,r2
-
-; Let dt^2 = r8 = 1/2048 in 32 bit fixed point with 16/16 integer/fraction parts.
+li r1,1
+fix r1,r1
 li r2,12
-shr r8,r7,r2
+shr r8,r1,r2
 
 ; ------- Initial Conditions -------
 
@@ -24,26 +19,26 @@ li rs,0
 li r5,0
 
 ; Create wave in two cells
-li r1,10
+li r1,20
 seq r2,x,r1
-li r1,14
+li r1,25
 seq r3,x,r1
 or r2,r2,r3
-li r1,12
+li r1,25
 seq r1,y,r1
 and r2,r2,r1
 
 li r1,20
 mul rs,r1,r2
-mul rs,rs,r7
+fix rs,rs
 li r1,19
 mul r5,r1,r2
-mul r5,r5,r7
+fix r5,r5
 
 ; Display u(t-2)
-shr video,r5,r6
+unfix video,r5
 ; Display u(t-1)
-shr video,rs,r6
+unfix video,rs
 
 ; ------- Solution Loop -------
 
@@ -84,5 +79,5 @@ solution:
   add r5,zero,r4
   add rs,zero,r1
 
-  shr video,rs,r6
+  unfix video,rs
   j solution

@@ -4,14 +4,13 @@
 import isa::*;
 
 module core_alu (
-    input  opcode_t opcode,
+    input  [4:0] aluop,
     input  immediate_t immediate,
     input  value_t first_operand_value,
     input  value_t second_operand_value,
-    output value_t result
+    input  [4:0] precision,
+    output register_t result
 );
-    wire value_t results [16];
-
     wire value_t add_result = first_operand_value + second_operand_value;
     wire value_t sub_result = first_operand_value - second_operand_value;
     wire value_t and_result = first_operand_value & second_operand_value;
@@ -23,17 +22,22 @@ module core_alu (
     wire value_t shr_result = first_operand_value >>> second_operand_value;
     wire double_value_t fmul_result = first_operand_value * second_operand_value;
 
-    assign results[LI] = (register_length)'(immediate);
-    assign results[ADD] = add_result;
-    assign results[SUB] = sub_result;
-    assign results[AND] = and_result;
-    assign results[OR] = or_result;
-    assign results[NOR] = nor_result;
-    assign results[SEQ] = seq_result;
-    assign results[SLT] = slt_result;
-    assign results[MUL] = mul_result;
-    assign results[SHR] = shr_result;
-    assign results[FMUL] = fmul_result[3*register_length/2-1:register_length/2];
-
-    assign result = results[opcode];
+    always_comb begin
+      case(aluop)
+        LI: result = (register_length)'(immediate);
+        ADD: result = add_result;
+        SUB: result = sub_result;
+        AND: result = and_result;
+        OR: result = or_result;
+        NOR: result = nor_result;
+        SEQ: result = seq_result;
+        SLT: result = slt_result;
+        MUL: result = mul_result;
+        SHR: result = shr_result;
+        FMUL: result /* verilator lint_off WIDTHTRUNC */
+                     /* verilator lint_off WIDTHEXPAND */ = fmul_result[precision +: register_length];
+        FIX: result = second_operand_value <<< precision;
+        UNFIX: result = second_operand_value >>> precision;
+      endcase
+    end
 endmodule

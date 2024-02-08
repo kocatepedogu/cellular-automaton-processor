@@ -5,15 +5,17 @@ The Cellular Automaton Processor is a very simple application-specific processor
 ## Examples
 
 <img src="./examples/wave-equation.png" width="300px"><br>
-Two-dimensional wave equation solution. The simulation starts with two close wave sources that produce interfering waves.
+Two-dimensional wave equation solution. <br><br>The simulation starts with two close wave sources that produce interfering waves. 32 bits was the minimum register length that can produce numerically stable results (with 16 bits for the integer part and 16 bits for fractional part). Timestep was choosen to be 1/128.
 
 <img src="./examples/heat-equation.png" width="300px"><br>
-Two-dimensional heat equation solution. Initially, there was a circle with high temperature surrounded by a very cold environment. The screenshot was taken a few seconds after the beginning.</p>
+Two-dimensional heat equation solution. <br><br>Initially, there was a circle with high temperature surrounded by a very cold environment. The screenshot was taken a few seconds after the beginning. It is possible to run the simulation with a register size of 16 bits with 8 bits for the fractional part. Even 12 bits registers can produce reasonable looking results, but it becomes inaccurate after a few minutes. </p>
 
 <img src="./examples/game-of-life.png" width="300px"><br>
 Glider pattern in Conway's Game of Life. The space is a toroidal array, so the pattern repeats itself forever.
 
-The above screenshots are taken from Verilator simulations. Assembly language sources can be found in examples directory. C++ and Verilog sources for the Verilator are available under targets/verilator. The total number of cores in the simulations are 25x25=625. Register lengths need to be at least 32 bits for the PDE examples to run, but the Game of Life example can run even with 4 bits.
+This is the simplest example and can be run with 6 bit registers in a 25x25 grid. It also works with 4 bit registers if the grid size is reduced to 8x8. This is currently the only one that is tested on an actual FPGA (Basys3 with F4PGA toolkit). The total number of cores in the simulations are 25x25=625.
+
+The above screenshots are taken from Verilator simulations. The assembly language sources of the example programs can be found in the examples directory. C++ and Verilog sources for the simulations are available under targets/verilator. 
 
 ## Running Examples
 
@@ -31,6 +33,7 @@ To run examples:
 ./obj_dir/Vtop game-of-life
 ./obj_dir/Vtop wave-equation
 ./obj_dir/Vtop heat-equation
+./obj_dir/Vtop recursion
 ```
 
 ## Instruction Format (16 Bits)
@@ -59,6 +62,12 @@ To run examples:
 |--------|---------------------|
 | 4 Bits | 12 Bits             |
 
+### E-Type
+
+| Opcode | Function Code | First Register | Second Register |
+|--------|---------------|----------------|-----------------|
+| 4 Bits | 4 Bits        | 4 Bits         | 4 Bits          |
+
 ## Registers
 
 | Value | Name | Description                                         |
@@ -73,21 +82,30 @@ To run examples:
 | 7     | r7   |General purpose register                             |
 | 8     | r8   |General purpose register                             |
 
-<br>
+<br> These are general purpose registers often used for math and logic operations.
 
-| Value | Name | Alternative Name | Description                     |
-|-------|------|------------------|---------------------------------|
-| 9     | zero | video            | Explained below                 |
-| 10    | x    | -                | x coordinate of the core itself |
-| 11    | y    | -                | y coordinate of the core itself |
-| 12    | x-   | -                | State of the core on the left   |
-| 13    | x+   | -                | State of the core on the right  |
-| 14    | y-   | -                | State of the core below         |
-| 15    | y+   | -                | State of the core above         |
+| Value | Name | Description                     |
+|-------|------|---------------------------------|
+| 9     | zero | Reading always yields zero      |
+| 10    | x    | x coordinate of the core itself |
+| 11    | y    | y coordinate of the core itself |
+| 12    | x-   | State of the core on the left   |
+| 13    | x+   | State of the core on the right  |
+| 14    | y-   | State of the core below         |
+| 15    | y+   | State of the core above         |
 
-<br> The registers in the second table behave differently from the registers in the first table. The ones with values 10-15 are read-only, and trying to write to these registers leads to undefined behavior. (Actually, what currently happens is that the general purpose registers get overwritten, but they may have special purposes as target registers in the future.)
+<br> The registers in the second table behave differently from the previous ones. The registers 'zero', 'x', 'y', 'x-', 'x+', 'y-' and 'y+' are read-only, and trying to write to them is undefined behavior.
 
-The zero register is the only register with such a special purpose. Reading it always yields the constant value zero. However, writing to it copies the given value to the video memory associated with the core, and this feature is used to display computation results.
+| Value | Name      | Description                     |
+|-------|-----------|---------------------------------|
+| 9     | video     | Reading always yields zero      |
+| 10    | precision | x coordinate of the core itself |
+
+<br> The registers 'video' and 'precision' are write-only, and trying to read their existing values is undefined behavior.
+
+Writing to the 'video' register displays the given value at the x and y coordinates of the core.
+
+Writing to the 'precision' register sets the number of bits used for storing fractional part of real numbers in the fixed point format. The instructions that operate on fixed point numbers (fmul, fix, unfix) use this internally stored register in computations.
 
 ## Design
 
@@ -101,7 +119,7 @@ The grid of cores is a toroidal array (for example, the leftmost cores read the 
 
 ## Instruction Set Architecture
 
-There are currently 15 instructions. The maximum number of different opcodes is limited to 16, so the last opcode value 15 will be used for enabling less commonly used extension instructions with additional parameters.
+There are currently 17 instructions. The maximum number of different opcodes is limited to 16, so the last opcode value 15 is used for using extension instructions (E-type) together with the function code.
 
 | Opcode | Mnemonic | Name                  | Type | Example          |
 |--------|----------|-----------------------|------|------------------|
@@ -120,7 +138,14 @@ There are currently 15 instructions. The maximum number of different opcodes is 
 | 12     | j        | Jump                  |  J   | j label          |
 | 13     | call     | Function call         |  J   | call func        |
 | 14     | ret      | Function return       |  J   | ret 0            |
-| 15     | -        | Reserved              |  -   | -                |
+| 15     | -        | Extension             |  E   | -                |
+
+### Extension Instructions
+
+| Function Code | Mnemonic | Name                              | Example           |
+|---------------|----------|-----------------------------------|-------------------|
+| 0             | fix      | Convert decimal to fixed point    | fix r1,r2         |
+| 1             | unfix    | Convert fixed point to decimal    | unfix r1,r2       |
 
 Most instructions are trivial. There are two instructions that require a little explanation.
 
@@ -154,9 +179,13 @@ unl r1,else      # if (condition) {
 else:            # }
 ```
 
-Since r1 is true only for the core (x=3,y=4), all other cores are going to wait until it executes the instruction in the if body. Then the cores will continue executing rest of the instructions in the program. If r1 was false for all cores, no wait would occur, and the program execution would directly continue at 'else' label.
+Since r1 is true only for the core (x=3, y=4), all other cores are going to wait until it executes the instruction in the if body. Then the cores will continue executing rest of the instructions in the program. If r1 was false for all cores, no wait would occur, and the program execution would directly continue at 'else' label.
 
-The 'fmul' instruction multiplies given two registers and internally stores the result in a register that is twice as large as input registers. Then it writes the middle portion of the result to the target register. This means that if input registers store 32 bit fixed point values where the high 16 bits store the integer part and low 16 bits store the fractional part, the target register contains the multiplication result in the same format after executing the instruction.
+The 'fmul' instruction interprets values given in the source registers as fixed point numbers, multiplies them and writes the product to the target register in the same fixed point format. It respects the value of the internal 'precision' register which determines the number of bits used for the fractional part.
+
+The 'fix' instructions converts the integer value given in the second register to a fixed point value and writes the result to the first register. It uses the value of the internal 'precision' register.
+
+The 'unfix' instructon converts the fixed point value in the second register to an integer value and write the result to the first register. The fractional part is lost, so executing 'fix' after 'unfix' may not produce the same result. This instruction also uses the value of the internal 'precision' register.
 
 ## LICENSE
 

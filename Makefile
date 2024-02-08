@@ -1,5 +1,5 @@
 # Verilator Target
-VFLAGS = -O3 --x-assign fast --x-initial fast --noassert
+VFLAGS = -O3 --x-assign fast --x-initial fast # --noassert
 SDL_CFLAGS = `sdl2-config --cflags`
 SDL_LDFLAGS = `sdl2-config --libs`
 
