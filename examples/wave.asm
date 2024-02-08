@@ -19,12 +19,12 @@ li rs,0
 li r5,0
 
 ; Create wave in two cells
-li r1,20
+li r1,10
 seq r2,x,r1
-li r1,25
+li r1,14
 seq r3,x,r1
 or r2,r2,r3
-li r1,25
+li r1,12
 seq r1,y,r1
 and r2,r2,r1
 
