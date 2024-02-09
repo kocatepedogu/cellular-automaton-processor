@@ -98,7 +98,7 @@ To run examples:
 
 | Value | Name      | Description                            |
 |-------|-----------|----------------------------------------|
-| 9     | video     | Reading always yields zero             |
+| 9     | video     | Writing displays value                 |
 | 10    | precision | Number of bits for the fractional part |
 
 <br> The registers 'video' and 'precision' are write-only, and trying to read their existing values is undefined behavior.
